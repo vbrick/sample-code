@@ -1,0 +1,793 @@
+{
+	"info": {
+		"_postman_id": "22fe72b7-d384-45c1-ba83-db1755b7561b",
+		"name": "Rev Scripts",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"item": [
+				{
+					"name": "By Username",
+					"item": [
+						{
+							"name": "Login (Username)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"pm.test(\"logged in\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    // token used for subsequent requests",
+											"    pm.environment.set(\"token\", jsonData.token);",
+											"    // can check to see if token has expired",
+											"    pm.environment.set(\"expiration\", jsonData.expiration);",
+											"",
+											"    // userId is used with the extend session API call, so store here as well",
+											"    pm.environment.set(\"userId\", jsonData.id)",
+											"    ",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);",
+											"",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "{{username}}",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "{{password}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/user/login",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Extend Session (Username)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"session extended\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var token = jsonData.token;\r",
+											"    \r",
+											"    // use for checking if token needs to be extended\r",
+											"    pm.environment.set(\"expiration\", jsonData.expiration);\r",
+											"    \r",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+											"\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"userId\": \"{{userId}}\" }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/user/extend-session-timeout",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"extend-session-timeout"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logoff Session (Username)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"session extended\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"\r",
+											"    // clear out stored session values\r",
+											"    pm.environment.set(\"token\", undefined);\r",
+											"    pm.environment.set(\"expiration\", undefined);\r",
+											"    \r",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+											"\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \"userId\": \"{{userId}}\" }",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/user/logoff",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"user",
+										"logoff"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "By API Key",
+					"item": [
+						{
+							"name": "Login (User API Key)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"pm.test(\"logged in\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var token = jsonData.token;",
+											"    ",
+											"    // token used for subsequent requests",
+											"    pm.environment.set(\"token\", token);",
+											"    // can check to see if token has expired",
+											"    pm.environment.set(\"expiration\", jsonData.expiration);",
+											"    ",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);",
+											"",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"apiKey\": \"{{userApiKey}}\", \"secret\": \"{{userSecret}}\"}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/authenticate",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"authenticate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Extend Session (User API Key)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"session extended\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    \r",
+											"    // used to check to see if token has expired\r",
+											"    pm.environment.set(\"expiration\", jsonData.expiration);\r",
+											"    \r",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{revurl}}/api/v2/auth/extend-session-timeout/{{userApiKey}}",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"extend-session-timeout",
+										"{{userApiKey}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Run one of these first (depending on login method) to retrieve an authorization token for subsequent API calls.\r\n\r\nAuthorization API calls can have their Content Type set to either `x-www-form-urlencoded` or `application/json`. In this collection **Login (Username)** uses a `form`, whereas **Login (User API Key)** uses `json`. The format is interchangable - just be sure you specify the correct Content Type when using custom code.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Video",
+			"item": [
+				{
+					"name": "Video Details",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "VBrick {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{revurl}}/api/v2/videos/{{videoId}}/details",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"videos",
+								"{{videoId}}",
+								"details"
+							]
+						},
+						"description": "replace {{videoId}} with the video ID you want to get details for. Or set in environment"
+					},
+					"response": []
+				},
+				{
+					"name": "Video Status",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('check if processed', function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+									"\r",
+									"    const jsonData = pm.response.json();\r",
+									"    // video status enum\r",
+									"    var status = jsonData.status;\r",
+									"    // true/false\r",
+									"    var isProcessing = jsonData.isProcessing;\r",
+									"    // progress 0.0 - 1.0\r",
+									"    var overallProgress = jsonData.overallProgress;\r",
+									"\r",
+									"    var label = `Video ${jsonData.videoId}`;\r",
+									"    \r",
+									"    switch (status) {\r",
+									"        case 'Processing':\r",
+									"            console.log(`${label} is still processing. Progress: ${overallProgress * 100}%`);\r",
+									"            break;\r",
+									"        case 'Ready':\r",
+									"            console.log(`${label} has finished transcoding`);\r",
+									"            break;\r",
+									"        case 'ProcessingFailed':\r",
+									"            console.log(`${label} failed transcoding - video is likely corrupt/invalid.`);\r",
+									"            break;\r",
+									"        case 'ReadyButProcessingFailed':\r",
+									"            console.log(`${label} failed transcoding but original version is available for playback - video is likely invalid.`);\r",
+									"            break;\r",
+									"        default:\r",
+									"            console.log(`${label} is in an intermediate state ${status}`);\r",
+									"    }\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "VBrick {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{revurl}}/api/v2/videos/{{videoId}}/status",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"videos",
+								"{{videoId}}",
+								"status"
+							]
+						},
+						"description": "replace {{videoId}} with the video ID you want to get details for. Or set in environment"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Video",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"returns Video ID of video\", function () {\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+									"\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.environment.set(\"videoId\", jsonData.videoId)\r",
+									"    console.log(`Video Uploaded. Video ID is ${jsonData.videoId}`);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Check for errors\", function () {\r",
+									"    var statusCode = pm.response.code;\r",
+									"\r",
+									"    if (statusCode === 200) {\r",
+									"        return;\r",
+									"    }\r",
+									"\r",
+									"    var code = '';\r",
+									"    var detail = '';\r",
+									"    try {\r",
+									"        var jsonData = pm.response.json();\r",
+									"        code = jsonData.code;\r",
+									"        detail = jsonData.detail;\r",
+									"    } catch (err) {\r",
+									"        // ignore, only some error responses include json detail\r",
+									"    }\r",
+									"\r",
+									"    switch(statusCode) {\r",
+									"        case 400:\r",
+									"            if (code === 'UploaderUserNotSpecified') {\r",
+									"                pm.expect.fail(\"You must set (at minimum) the 'uploader' value in the Video JSON metadata of the request. This is the username of the Rev user to associate the video with.\");\r",
+									"            } else {\r",
+									"                pm.expect.fail(`Invalid request (${code}). ${detail}`);\r",
+									"            }\r",
+									"            break;\r",
+									"        case 429:\r",
+									"            pm.expect.fail(\"Too many requests (5/uploads per minute for entire account, not just per user). Wait 60 seconds and try again.\");\r",
+									"            break;\r",
+									"        case 415:\r",
+									"            pm.expect.fail(\"Invalid content type of file. Filename extension must match the specified content type. Note that application/octet-stream is not a valid mimetype. When in doubt set the mimetype to video/mp4; Rev will detect the actual content type during transcoding\");\r",
+									"            break;\r",
+									"        default:\r",
+									"            pm.expect.fail(`Error uploading video (${statusCode} ${code || 'Unknown'}) - ${detail}`);\r",
+									"            break;\r",
+									"    }\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "VBrick {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "Video",
+									"value": "{ \"uploader\": \"{{username}}\", \"title\": \"Hello World\" }",
+									"contentType": "",
+									"type": "text"
+								},
+								{
+									"key": "VideoFile",
+									"contentType": "",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{revurl}}/api/uploads/videos",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"uploads",
+								"videos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get Roles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('store roles', function () {\r",
+									"  const roleArray = pm.response.json();\r",
+									"\r",
+									"  // set some of the role IDs for use with other API calls\r",
+									"  for (let role of roleArray) {\r",
+									"    switch (role.name) {\r",
+									"      case 'Media Viewer':\r",
+									"        pm.environment.set('mediaViewerRoleId', role.id);\r",
+									"        break;\r",
+									"      case 'Media Contributor':\r",
+									"        pm.environment.set('mediaContributorRoleId', role.id);\r",
+									"        break;\r",
+									"      case 'Event Host':\r",
+									"        pm.environment.set('eventHostRoleId', role.id);\r",
+									"        break;\r",
+									"    }\r",
+									"  }\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{revurl}}/api/v2/users/roles",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"users",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (!pm.environment.get('mediaViewerRoleId') && /mediaViewerRoleId/.test(pm.request.body.toString())) {\r",
+									"  console.error('Run the \"Get Roles\" request to get the Media Viewer Role ID first, or modify the request to remove the set role.');\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Optional\",\r\n    \"lastName\": \"Required\",\r\n    \"title\": \"Optional - sample API User\",\r\n    \"username\": \"sample.api.created.user\",\r\n    \"groupIds\": [],\r\n    \"roleIds\": [\"{{mediaViewerRoleId}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{revurl}}/api/v2/users",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"users"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Events",
+			"item": [
+				{
+					"name": "Events by Dates",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"scheduled-events\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(pm.response.code).to.be.oneOf([200,201,202]);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "VBrick {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{revurl}}/api/v2/auth/extend-session-timeout/scheduled-events?after={{after-date}}&before={{before-date}}",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"auth",
+								"extend-session-timeout",
+								"scheduled-events"
+							],
+							"query": [
+								{
+									"key": "after",
+									"value": "{{after-date}}"
+								},
+								{
+									"key": "before",
+									"value": "{{before-date}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"/*",
+					"This code chunk is a helper to verify if you've signed in already, and will warn you if you haven't logged in yet or the session expired.",
+					"*/",
+					"",
+					"// check if call is initial login call",
+					"var isAuthCall = /v\\d\\/user\\/login|v\\d\\/authenticate$/.test(pm.request.url);",
+					"",
+					"function validateExpiration() {",
+					"  // if not a login verify that a valid session token has been set",
+					"  if (!isAuthCall) {",
+					"      var expiration = new Date(pm.variables.get(\"expiration\"));",
+					"",
+					"      // expect valid session (set and not expired)",
+					"      if (isNaN(expiration.getTime()) || expiration.getTime() < Date.now()) {",
+					"          console.warn('Expired/invalid session - call will likely fail. Use Login request to generate a new authorization token');",
+					"      } else {",
+					"          // warn if session is soon to expire",
+					"          var deltaSeconds = (expiration.getTime() - Date.now()) / 1000;",
+					"          var warningThresholdSeconds = 1 * 60;",
+					"          if (deltaSeconds < warningThresholdSeconds) {",
+					"              console.warn(`Session will expire in ${Math.round(deltaSeconds)} seconds. Consider using the \"Extend Session\" API call.`);",
+					"          }",
+					"      }",
+					"  }",
+					"}",
+					"",
+					"function addAuthHeader() {",
+					"  var isAuthorized = isAuthCall || pm.request.headers.has('Authorization');",
+					"  var token = pm.variables.get('token');",
+					"  // don't add auth header if not necessary, or if no token yet",
+					"  if (isAuthorized || !token) { return; }",
+					"  ",
+					"  console.debug('Adding Authorization HTTP Header automatically');",
+					"  pm.request.headers.add({ key: 'Authorization', value: `VBrick ${token}`});",
+					"}",
+					"",
+					"validateExpiration()",
+					"addAuthHeader();",
+					"",
+					"",
+					"",
+					"",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "videoId",
+			"value": "061f7ac3-6791-432a-9b19-67e1cc4b980b"
+		}
+	]
+}
