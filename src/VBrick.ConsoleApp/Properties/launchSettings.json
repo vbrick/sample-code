@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VBrick.ConsoleApp": {
+      "commandName": "Project",
+      "commandLineArgs": "--environment \"StagingTest\" -pw \"YOUR_PASSWORD_HERE\""
+    }
+  }
+}
