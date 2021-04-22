@@ -1,0 +1,32 @@
+{
+  "name": "rev-client",
+  "version": "0.5.0",
+  "description": "Sample code for interacting with the Vbrick Rev API",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "node example.js",
+    "compile": "tsc"
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "engines": {
+    "node": ">=12.4"
+  },
+  "repository": {
+    "url": "https://github.com/vbrick/sample-code",
+    "directory": "nodejs/rev-client"
+  },
+  "typings": "dist/index.d.ts",
+  "author": "vbrick",
+  "license": "ISC",
+  "dependencies": {
+    "form-data": "^3.0.1",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.41",
+    "@types/node-fetch": "^2.5.10"
+  }
+}
