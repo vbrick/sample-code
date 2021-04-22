@@ -1,6 +1,6 @@
 # rev-client
 
-This is a sample node.js client library for interacting with the [Vbrick Rev API](https://portal.vbrick.com/rev-developers/v2/). See example.js or `src/example.ts` for sample usage.
+This is a sample node.js client library for interacting with the [Vbrick Rev API](https://revdocs.vbrick.com/reference). See example.js or `src/example.ts` for sample usage.
 
 ## Usage
 
@@ -115,7 +115,7 @@ Returns: the body of the API response.
 
 #### `video.setTitle(videoId, title)`
 
-An example of using the [Video PATCH API](https://portal.vbrick.com/rev-developers/v2/integrating-video/patch/) to change a single value on the video
+An example of using the [Video PATCH API](https://revdocs.vbrick.com/reference#editvideopatch) to change a single value on the video
 
 #### `video.getStatus(videoId)`
 
@@ -139,7 +139,7 @@ The path to a file to upload. Can also be a Readable stream instead.
 
 Type: `object`
 
-The video metadata to add. `uploader` is the only required field - it will default to the `username` if set in the `RevClient` constructor. See the [API documentation](https://portal.vbrick.com/rev-developers/v2/integrating-video/upload-video/) for the available options.
+The video metadata to add. `uploader` is the only required field - it will default to the `username` if set in the `RevClient` constructor. See the [API documentation](https://revdocs.vbrick.com/reference#uploadvideo) for the available options.
 
 ##### options
 
@@ -159,7 +159,7 @@ Search for videos matching the specified query. If no query is specified then re
 
 Type: `object`
 
-See the [video search documentation](https://portal.vbrick.com/rev-developers/v2/integrating-video/video-search/) for available parameters.
+See the [video search documentation](https://revdocs.vbrick.com/reference#searchvideo) for available parameters.
 
 ##### options
 

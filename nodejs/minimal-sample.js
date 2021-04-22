@@ -1,6 +1,7 @@
 /**
  * This code is an example of logging into Rev and using the resulting
- * authentication token to get details about a specific video
+ * authentication token to get details about a specific video.
+ * It should work with all versions of node.js 8+
  * */
 
 var revUrl = 'my.rev.instance.portal.vbrick.com';
@@ -13,7 +14,7 @@ var querystring = require('querystring');
 
 function login(revUrl, username, password, callback) {
 	// this is the API endpoint for logging in
-	// see https://portal.vbrick.com/rev-developers/v2/authentication/username-login/
+	// see https://revdocs.vbrick.com/reference#loginuser
 	var endpoint = '/api/v2/user/login';
 	var query = querystring.stringify({
 		username: username,
@@ -123,14 +124,12 @@ login(revUrl, username, password, function (loginError, token) {
 	if (loginError) {
 		console.warn('Could not login. Check url, username and password', loginError);
 		process.exit(1);
-		return;
 	}
 
 	getVideoDetails(token, videoId, function (err, details) {
 		if (err) {
 			console.warn('Unable to retrieve video details. Check videoId', err);
 			process.exit(1);
-			return;
 		}
 
 		console.log('Retrieved video details', details);

@@ -2,7 +2,7 @@
 
 This repository holds various sample code and examples for using the [Vbrick Rev](https://vbrick.com/enterprise-video-platform/) API.
 
-Refer to [our documentation](https://portal.vbrick.com/rev-developers/) for more information.
+Refer to the Vbrick [documentation](https://revdocs.vbrick.com/reference) for more information.
 
 ## Contents
 
