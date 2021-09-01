@@ -1,13 +1,286 @@
 {
 	"info": {
-		"_postman_id": "22fe72b7-d384-45c1-ba83-db1755b7561b",
+		"_postman_id": "9dc9d650-5252-46d3-98bd-f47247abd108",
 		"name": "Rev Scripts",
+		"description": "# VBRICK REV API\nThis is a collection that demonstrates how to use the Vbrick Rev API. It includes the login endpoints for managing an API session, as well as some example API calls.\n\nIt also includes helper scripts to automatically log you into Rev and add the necessary Authorization headers.\n\nSee the [Rev API documentation](https://revdocs.vbrick.com/reference) for a full reference of the available endpoints.\n\n## CONFIGURATION\n\n**IMPORTANT!** This collection uses [Postman \"variables\"](https://learning.postman.com/docs/sending-requests/variables/) to let you point directly to your Rev URL and specify your login credentials. Specifically, you should include the following:\n\n* `revurl`: The URL of your Rev instance (i.e. `https://YOUR_REV_TENANT_URL`)\n* `userApiKey`: *(Recommended)* User API Key Token. If you're an Administrator in Rev you can generate one for a user account by going to Rev Admin -> Users -> Users, viewing the details of the user account in question and clicking \"Generate API Key\".\n* `userSecret`: *(Recommended)* User API Key Secret. Required if using the API Key authentication.\n* `username`: Instead of using API Key login you can login via username/password of a Rev account.\n* `password`: Password of Rev user account specified by `username`. Required if using Username-based login\n\n## Adding New Requests\n\nSee the [Postman documentation for adding new Requests](https://learning.postman.com/docs/sending-requests/intro-to-collections/#adding-requests).\n\nWhen adding new requests use the {{revurl}} variable to point to your Rev instance (as set in the Environment settings). You can also copy + paste the URL directly from the API docs (i.e. https://YOUR_REV_TENANT_URL) and this collection will update that default value for you.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
 			"name": "Login",
 			"item": [
+				{
+					"name": "By API Key",
+					"item": [
+						{
+							"name": "Login (User API Key)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"pm.test(\"logged in\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var token = jsonData.token;",
+											"    ",
+											"    // token used for subsequent requests",
+											"    pm.environment.set(\"token\", token);",
+											"    // can check to see if token has expired",
+											"    pm.environment.set(\"expiration\", jsonData.expiration);",
+											"    ",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);",
+											"",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"apiKey\": \"{{userApiKey}}\", \"secret\": \"{{userSecret}}\"}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/authenticate",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"authenticate"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Using Form instead of JSON for request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"name": "Content-Type",
+												"value": "application/x-www-form-urlencoded",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "apiKey",
+													"value": " {{userApiKey}}",
+													"description": "User's API Key",
+													"type": "text"
+												},
+												{
+													"key": "secret",
+													"value": " {{userSecret}}",
+													"description": "User's Secret",
+													"type": "text"
+												}
+											],
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{revurl}}/api/v2/authenticate",
+											"host": [
+												"{{revurl}}"
+											],
+											"path": [
+												"api",
+												"v2",
+												"authenticate"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Server",
+											"value": "openresty"
+										},
+										{
+											"key": "Date",
+											"value": "Mon, 30 Aug 2021 16:10:12 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "cache-control",
+											"value": "no-cache, no-store, must-revalidate, no-transform"
+										},
+										{
+											"key": "expires",
+											"value": "-1"
+										},
+										{
+											"key": "vary",
+											"value": "Accept"
+										},
+										{
+											"key": "link",
+											"value": "</api/authenticate.xml>; rel=\"application/xml\""
+										},
+										{
+											"key": "x-content-type-options",
+											"value": "nosniff"
+										},
+										{
+											"key": "referrer-policy",
+											"value": "strict-origin-when-cross-origin"
+										},
+										{
+											"key": "x-xss-protection",
+											"value": "1; mode=block"
+										},
+										{
+											"key": "x-download-options",
+											"value": "noopen"
+										},
+										{
+											"key": "strict-transport-security",
+											"value": "max-age=31536000; includeSubDomains"
+										},
+										{
+											"key": "Content-Encoding",
+											"value": "gzip"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"token\": \"A very long string\",\n    \"issuer\": \"VBrick\",\n    \"expiration\": \"2021-08-30T17:10:11.415Z\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Extend Session (User API Key)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"session extended\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    \r",
+											"    // used to check to see if token has expired\r",
+											"    pm.environment.set(\"expiration\", jsonData.expiration);\r",
+											"    \r",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{revurl}}/api/v2/auth/extend-session-timeout/{{userApiKey}}",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"extend-session-timeout",
+										"{{userApiKey}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logoff Session (User API Key)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"session ended\", function () {\r",
+											"    // clear out stored session values\r",
+											"    pm.environment.set(\"token\", undefined);\r",
+											"    pm.environment.set(\"expiration\", undefined);\r",
+											"    \r",
+											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{revurl}}/api/v2/tokens/{{userApiKey}}",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"tokens",
+										"{{userApiKey}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "By Username",
 					"item": [
@@ -148,7 +421,7 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"session extended\", function () {\r",
+											"pm.test(\"session ended\", function () {\r",
 											"    var jsonData = pm.response.json();\r",
 											"\r",
 											"    // clear out stored session values\r",
@@ -191,122 +464,6 @@
 										"v2",
 										"user",
 										"logoff"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "By API Key",
-					"item": [
-						{
-							"name": "Login (User API Key)",
-							"event": [
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"",
-											"pm.test(\"logged in\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    var token = jsonData.token;",
-											"    ",
-											"    // token used for subsequent requests",
-											"    pm.environment.set(\"token\", token);",
-											"    // can check to see if token has expired",
-											"    pm.environment.set(\"expiration\", jsonData.expiration);",
-											"    ",
-											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);",
-											"",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disabledSystemHeaders": {}
-							},
-							"request": {
-								"auth": {
-									"type": "noauth"
-								},
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\"apiKey\": \"{{userApiKey}}\", \"secret\": \"{{userSecret}}\"}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{revurl}}/api/v2/authenticate",
-									"host": [
-										"{{revurl}}"
-									],
-									"path": [
-										"api",
-										"v2",
-										"authenticate"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Extend Session (User API Key)",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"session extended\", function () {\r",
-											"    var jsonData = pm.response.json();\r",
-											"    \r",
-											"    // used to check to see if token has expired\r",
-											"    pm.environment.set(\"expiration\", jsonData.expiration);\r",
-											"    \r",
-											"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Authorization",
-										"type": "text",
-										"value": "VBrick {{token}}"
-									}
-								],
-								"url": {
-									"raw": "{{revurl}}/api/v2/auth/extend-session-timeout/{{userApiKey}}",
-									"host": [
-										"{{revurl}}"
-									],
-									"path": [
-										"api",
-										"v2",
-										"auth",
-										"extend-session-timeout",
-										"{{userApiKey}}"
 									]
 								}
 							},
@@ -375,7 +532,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{revurl}}/api/v2/videos/{{videoId}}/details",
+							"raw": "{{revurl}}/api/v2/videos/:videoId/details",
 							"host": [
 								"{{revurl}}"
 							],
@@ -383,13 +540,125 @@
 								"api",
 								"v2",
 								"videos",
-								"{{videoId}}",
+								":videoId",
 								"details"
+							],
+							"variable": [
+								{
+									"key": "videoId",
+									"value": null,
+									"description": "ID of the Video in Question"
+								}
 							]
 						},
 						"description": "replace {{videoId}} with the video ID you want to get details for. Or set in environment"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Video Details",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "VBrick {{token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{revurl}}/api/v2/videos/:videoId/details",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"videos",
+										":videoId",
+										"details"
+									],
+									"variable": [
+										{
+											"key": "videoId",
+											"value": "4a3c1dd1-eea4-4ecd-9c8e-dd27b22b0b64",
+											"description": "ID of the Video in Question"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 16:16:23 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "cache-control",
+									"value": "no-cache, no-store, must-revalidate, no-transform"
+								},
+								{
+									"key": "expires",
+									"value": "-1"
+								},
+								{
+									"key": "vary",
+									"value": "Accept"
+								},
+								{
+									"key": "link",
+									"value": "</api/details.xml>; rel=\"application/xml\""
+								},
+								{
+									"key": "x-content-type-options",
+									"value": "nosniff"
+								},
+								{
+									"key": "referrer-policy",
+									"value": "strict-origin-when-cross-origin"
+								},
+								{
+									"key": "x-xss-protection",
+									"value": "1; mode=block"
+								},
+								{
+									"key": "x-download-options",
+									"value": "noopen"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"4a3c1dd1-eea4-4ecd-9c8e-dd27b22b0b64\",\n    \"title\": \"Example Video\",\n    \"htmlDescription\": \"Video <strong>Description</strong>\",\n    \"description\": \"Video Description\",\n    \"linkedUrl\": null,\n    \"isActive\": true,\n    \"approvalStatus\": \"Approved\",\n    \"categories\": [\n        \"40b2702b-da6b-4fb3-aac7-7542ee093642\"\n    ],\n    \"categoryPaths\": [\n        {\n            \"categoryId\": \"40b2702b-da6b-4fb3-aac7-7542ee093642\",\n            \"name\": \"Sample Category\",\n            \"fullPath\": \"Parent Category/Sample Category\",\n            \"restricted\": false\n        }\n    ],\n    \"videoAccessControl\": \"AllUsers\",\n    \"accessControlEntities\": [],\n    \"tags\": [\n        \"keyword\"\n    ],\n    \"enableComments\": false,\n    \"enableRatings\": true,\n    \"enableDownloads\": false,\n    \"status\": \"Ready\",\n    \"canEdit\": true,\n    \"thumbnailKey\": \"768f577f-1dca-4d15-8c1d-6f1559cc19b6.jpg\",\n    \"thumbnailUrl\": \"https://YOUR_REV_TENANT_URL/api/v2/media/videos/thumbnails/768f577f-1dca-4d15-8c1d-6f1559cc19b6.jpg\",\n    \"uploadedBy\": \"Example FullName\",\n    \"whenUploaded\": \"2020-05-22T17:08:34.443Z\",\n    \"lastViewed\": \"2020-06-19T17:53:58.101Z\",\n    \"customFields\": [\n        {\n            \"id\": \"07cc4296-1ab2-4e32-94cd-ecaec6fa26d8\",\n            \"name\": \"RecipeType\",\n            \"value\": \"Dinner\",\n            \"required\": false,\n            \"displayedToUsers\": true,\n            \"fieldType\": \"Text\"\n        }\n    ],\n    \"sourceType\": \"REV\",\n    \"expirationDate\": null,\n    \"expirationAction\": null,\n    \"publishDate\": null,\n    \"is360\": false,\n    \"unlisted\": false,\n    \"totalViews\": 2,\n    \"overallProgress\": 1,\n    \"isProcessing\": false,\n    \"password\": null,\n    \"userTags\": [],\n    \"upLoader\": {\n        \"firstName\": \"Example\",\n        \"lastName\": \"FullName\",\n        \"userId\": \"55555555-1234-1234-1234-f6cf13232ffb\",\n        \"userName\": \"example.username\"\n    },\n    \"instances\": [\n        {\n            \"id\": \"92468309-614f-40e7-a618-5ddfc6f82eba\",\n            \"status\": \"Stored\",\n            \"isOriginalInstance\": true,\n            \"name\": null,\n            \"size\": 3363557,\n            \"videoKey\": \"00000037-d7d3-4551-a74f-6e5777777777/4a3c1dd1-eea4-4ecd-9c8e-dd27b22b0b64/92468309-614f-40e7-a618-5ddfc6f82eba.mp4\",\n            \"preset\": {}\n        },\n        {\n            \"id\": \"c81b517c-d513-4d7f-b6ad-06d82856fd88\",\n            \"status\": \"Stored\",\n            \"isOriginalInstance\": false,\n            \"name\": \"Mobile Devices\",\n            \"size\": 11040797,\n            \"videoKey\": \"00000037-d7d3-4551-a74f-6e5777777777/4a3c1dd1-eea4-4ecd-9c8e-dd27b22b0b64/c81b517c-d513-4d7f-b6ad-06d82856fd88.m3u8\",\n            \"preset\": {\n                \"container\": \"Hls\"\n            }\n        }\n    ],\n    \"duration\": \"00:00:21.0100000\",\n    \"chapters\": null,\n    \"hasAudioOnly\": false,\n    \"avgRating\": 0,\n    \"ratingsCount\": 0,\n    \"expiration\": {\n        \"ruleId\": null,\n        \"expirationDate\": null,\n        \"numberOfDays\": 0,\n        \"expiryRuleType\": \"None\",\n        \"deleteOnExpiration\": false\n    },\n    \"commentsCount\": 0,\n    \"whenModified\": \"2021-08-30T16:01:31.746Z\",\n    \"closedCaptionsEnabled\": false,\n    \"approval\": {\n        \"status\": \"Approved\",\n        \"approvalProcessId\": null,\n        \"approvalProcessName\": null,\n        \"steps\": [],\n        \"whenSubmittedForApproval\": null,\n        \"stepId\": null,\n        \"approvalProcessReferenced\": false\n    },\n    \"transcodeFailed\": false,\n    \"source\": \"Upload\"\n}"
+						}
+					]
 				},
 				{
 					"name": "Video Status",
@@ -455,7 +724,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{revurl}}/api/v2/videos/{{videoId}}/status",
+							"raw": "{{revurl}}/api/v2/videos/:videoId/status",
 							"host": [
 								"{{revurl}}"
 							],
@@ -463,8 +732,15 @@
 								"api",
 								"v2",
 								"videos",
-								"{{videoId}}",
+								":videoId",
 								"status"
+							],
+							"variable": [
+								{
+									"key": "videoId",
+									"value": null,
+									"description": "ID of the video in question"
+								}
 							]
 						},
 						"description": "replace {{videoId}} with the video ID you want to get details for. Or set in environment"
@@ -482,7 +758,10 @@
 									"    pm.expect(pm.response.code).to.be.oneOf([200, 201,202]);\r",
 									"\r",
 									"    var jsonData = pm.response.json();\r",
-									"    pm.environment.set(\"videoId\", jsonData.videoId)\r",
+									"    \r",
+									"    console.log('Stored Video ID in environment variables');\r",
+									"    pm.environment.set('videoId', jsonData.videoId);\r",
+									"\r",
 									"    console.log(`Video Uploaded. Video ID is ${jsonData.videoId}`);\r",
 									"});\r",
 									"\r",
@@ -542,12 +821,14 @@
 								{
 									"key": "Video",
 									"value": "{ \"uploader\": \"{{username}}\", \"title\": \"Hello World\" }",
-									"contentType": "",
+									"contentType": "application/json",
+									"description": "JSON payload of all metadata to include with video file",
 									"type": "text"
 								},
 								{
 									"key": "VideoFile",
 									"contentType": "",
+									"description": "Video File. You must explicitly set the Content Type to a valid content type if file does not have an extension",
 									"type": "file",
 									"src": []
 								}
@@ -562,6 +843,478 @@
 								"api",
 								"uploads",
 								"videos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete video",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{revurl}}/api/v2/videos/:videoId",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"videos",
+								":videoId"
+							],
+							"variable": [
+								{
+									"key": "videoId",
+									"value": null
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Patch Video",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "VBrick {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    { \"op\": \"replace\" , \"path\": \"/TitleCase\", \"value\": \"Updated Value for field\" },\r\n    { \"op\": \"remove\" , \"path\": \"/OptionalField/To/Unset\" },\r\n    { \"op\": \"add\" , \"path\": \"/ArrayField/-\", \"value\": \"Add new value to end of Categories/Tags/etc. by appending path with '/-'\" },\r\n    { \"op\": \"remove\" , \"path\": \"/ArrayField\", \"value\": \"Value to remove from Categories/Tags\" },\r\n    { \"op\": \"replace\" , \"path\": \"/ArrayField\", \"value\": \"Replace the entire contents of an array field (Categories/Tags/CustomFields/etc)\" }\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{revurl}}/api/v2/videos/:videoId",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"videos",
+								":videoId"
+							],
+							"variable": [
+								{
+									"key": "videoId",
+									"value": "",
+									"description": "ID of the video to edit"
+								}
+							]
+						},
+						"description": "replace {{videoId}} with the video ID you want to edit. Or set in environment. This is an example of using the Patch Video API entry."
+					},
+					"response": [
+						{
+							"name": "Successful Response",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n    { \"op\": \"replace\" , \"path\": \"/Title\", \"value\": \"Updated Title via API\" },\r\n    { \"op\": \"replace\" , \"path\": \"/EnableComments\", \"value\": false },\r\n    { \"op\": \"add\" , \"path\": \"/Tags/-\", \"value\": \"keyword\" }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/videos/:videoId",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"videos",
+										":videoId"
+									],
+									"variable": [
+										{
+											"key": "videoId",
+											"value": "4a3c1dd1-eea4-4ecd-9c8e-dd27b22b0b64",
+											"description": "ID of the video to edit"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "html",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 16:01:31 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/html"
+								},
+								{
+									"key": "Content-Length",
+									"value": "0"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "Invalid Request",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\r\n    { \"op\": \"remove\" , \"path\": \"/Tags\", \"value\": \"keyword_to_remove\" }\r\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/videos/:videoId",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"videos",
+										":videoId"
+									],
+									"variable": [
+										{
+											"key": "videoId",
+											"value": "4a3c1dd1-eea4-4ecd-9c8e-dd27b22b0b64",
+											"description": "ID of the video to edit"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 16:00:17 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": \"UnprocessableEntity\",\n    \"detail\": \"Patch value operation is not valid for /Tags. Value does not exist: keyword_to_remove\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Migrate Video",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "VBrick {{token}}"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "userName",
+									"value": "",
+									"description": "username of user to assign this video to",
+									"type": "text"
+								},
+								{
+									"key": "whenUploaded",
+									"value": "",
+									"description": "date in ISO format",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "publishDate",
+									"value": "",
+									"description": "date in YYYY-MM-DD format - date is relative to Rev Account's \"system timezone\" setting rather than UTC",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{revurl}}/api/v2/videos/:videoId/migration",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"videos",
+								":videoId",
+								"migration"
+							],
+							"variable": [
+								{
+									"key": "videoId",
+									"value": null
+								}
+							]
+						},
+						"description": "The \"Migrate Video\" API endpoint lets you change the uploader, uploaded date or publish date of a video. All fields are optional"
+					},
+					"response": [
+						{
+							"name": "Example - Update Video Upload Date (JSON body)",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"whenUploaded\": \"2020-03-14T01:59:26:53.589\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/videos/:videoId/migration",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"videos",
+										":videoId",
+										"migration"
+									],
+									"variable": [
+										{
+											"key": "videoId",
+											"value": null
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 15:43:09 GMT"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Video Search",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{revurl}}/api/v2/videos/search?q=my text query",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"videos",
+								"search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "my text query",
+									"description": "Text to search for"
+								},
+								{
+									"key": "fromUploadDate",
+									"value": "2021-03-14T01:59:265Z",
+									"description": "Only return videos uploaded since this date",
+									"disabled": true
+								},
+								{
+									"key": "toUploadDate",
+									"value": "2021-03-14T01:59:265Z",
+									"description": "Only return videos uploaded before this date",
+									"disabled": true
+								},
+								{
+									"key": "count",
+									"value": "50",
+									"description": "number of videos to get per page (default 50)",
+									"disabled": true
+								},
+								{
+									"key": "scrollId",
+									"value": null,
+									"description": "If there are more than one page of results then the response will include a \"scrollId\" value. To get the NEXT page of results copy it from the response and paste here.",
+									"disabled": true
+								},
+								{
+									"key": "exactMatch",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Replace Video",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "VideoFile",
+									"description": "File to replace existing video content",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "https://YOUR_REV_TENANT_URL/api/v2/uploads/videos/:videoId",
+							"protocol": "https",
+							"host": [
+								"YOUR_REV_TENANT_URL"
+							],
+							"path": [
+								"api",
+								"v2",
+								"uploads",
+								"videos",
+								":videoId"
+							],
+							"variable": [
+								{
+									"key": "videoId",
+									"value": null,
+									"description": "ID of Video to replace"
+								}
 							]
 						}
 					},
@@ -669,23 +1422,20 @@
 			"name": "Events",
 			"item": [
 				{
-					"name": "Events by Dates",
+					"name": "Search Webcasts By Date Range or Custom Fields",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"scheduled-events\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    pm.expect(pm.response.code).to.be.oneOf([200,201,202]);\r",
-									"});"
+									""
 								],
 								"type": "text/javascript"
 							}
 						}
 					],
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
@@ -693,31 +1443,770 @@
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "startDate",
+									"value": "2021-08-01T00:00:00Z",
+									"description": "Default is current date minus 365",
+									"type": "text"
+								},
+								{
+									"key": "endDate",
+									"value": "{{$isoTimestamp}}",
+									"description": "Default is the current date",
+									"type": "text"
+								},
+								{
+									"key": "sortField",
+									"value": "StartDate",
+									"description": "StartDate/Title - default is StartDate",
+									"type": "text"
+								},
+								{
+									"key": "sortDirection",
+									"value": "asc",
+									"description": "asc/desc",
+									"type": "text"
+								},
+								{
+									"key": "size",
+									"value": "100",
+									"description": "Set number of results per page 50-500, default 100. Iterate through pages using the \"scrollId\" parameter",
+									"type": "text"
+								},
+								{
+									"key": "customFields",
+									"value": "",
+									"description": "NOT SUPPORTED for x-www-form-urlencoded payload - see JSON body example for how to search by Custom Fields",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "scrollId",
+									"value": "",
+									"description": "Include the scrollId from the previous call's respoinse to get next page of results",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
 						"url": {
-							"raw": "{{revurl}}/api/v2/auth/extend-session-timeout/scheduled-events?after={{after-date}}&before={{before-date}}",
+							"raw": "{{revurl}}/api/v2/search/scheduled-events",
 							"host": [
 								"{{revurl}}"
 							],
 							"path": [
 								"api",
 								"v2",
-								"auth",
-								"extend-session-timeout",
+								"search",
 								"scheduled-events"
+							]
+						},
+						"description": "This search request uses a POST body payload to specify search parameters instead of GET query parameters. You can search by Date Range and/or Custom Fields. It supports both x-www-form-urlencoded and JSON request bodies."
+					},
+					"response": [
+						{
+							"name": "Date Range - FormData request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "VBrick {{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "startDate",
+											"value": "2021-08-01T00:00:00Z",
+											"description": "oldest date to search in range",
+											"type": "text"
+										},
+										{
+											"key": "endDate",
+											"value": "2021-09-01T00:00:00Z",
+											"type": "text"
+										},
+										{
+											"key": "sortField",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "sortDirection",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "size",
+											"value": "100",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "scrollId",
+											"value": "",
+											"description": "include the scrollId from the previous call's respoinse to get next page of results",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/search/scheduled-events",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"search",
+										"scheduled-events"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 13:50:01 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "cache-control",
+									"value": "no-cache, no-store, must-revalidate, no-transform"
+								},
+								{
+									"key": "expires",
+									"value": "-1"
+								},
+								{
+									"key": "vary",
+									"value": "Accept"
+								},
+								{
+									"key": "link",
+									"value": "</api/scheduled-events.xml>; rel=\"application/xml\""
+								},
+								{
+									"key": "x-content-type-options",
+									"value": "nosniff"
+								},
+								{
+									"key": "referrer-policy",
+									"value": "strict-origin-when-cross-origin"
+								},
+								{
+									"key": "x-xss-protection",
+									"value": "1; mode=block"
+								},
+								{
+									"key": "x-download-options",
+									"value": "noopen"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"scrollId\": null,\n    \"events\": [\n        {\n            \"id\": \"a67f7744-0fa0-4b26-b606-8cd90011da00\",\n            \"title\": \"All About Porridge\",\n            \"description\": \"\",\n            \"startDate\": \"2021-08-04T19:53:31Z\",\n            \"endDate\": \"2021-08-04T20:53:31Z\",\n            \"listingType\": \"Private\",\n            \"eventUrl\": \"https://YOUR_REV_TENANT_URL/#/events/a67f7744-0fa0-4b26-b606-8cd90011da00\",\n            \"backgroundImages\": [],\n            \"categories\": [],\n            \"tags\": [],\n            \"unlisted\": false,\n            \"estimatedAttendees\": 0,\n            \"lobbyTimeMinutes\": 15,\n            \"preProduction\": null,\n            \"shortcutName\": null,\n            \"shortcutNameUrl\": null,\n            \"linkedVideoId\": null,\n            \"autoAssociateVod\": true,\n            \"redirectVod\": true,\n            \"customFields\": [\n                {\n                    \"id\": \"a4a7da66-971c-4e6b-9774-032d6982a3c8\",\n                    \"name\": \"RecipeType\",\n                    \"value\": \"Breakfast\",\n                    \"required\": false,\n                    \"displayedToUsers\": false,\n                    \"fieldType\": \"Text\"\n                }\n            ]\n        },\n        {\n            \"id\": \"4345ed69-823b-4fdd-b564-390e1e332ab8\",\n            \"title\": \"Gazpacho - It's Cerved Cold\",\n            \"description\": \"\",\n            \"startDate\": \"2021-08-12T13:00:00Z\",\n            \"endDate\": \"2021-08-12T14:00:00Z\",\n            \"listingType\": \"AllUsers\",\n            \"eventUrl\": \"https://YOUR_REV_TENANT_URL/#/events/4345ed69-823b-4fdd-b564-390e1e332ab8\",\n            \"backgroundImages\": [],\n            \"categories\": [],\n            \"tags\": [\"soup\", \"summer\"],\n            \"unlisted\": true,\n            \"estimatedAttendees\": 20,\n            \"lobbyTimeMinutes\": 15,\n            \"preProduction\": null,\n            \"shortcutName\": null,\n            \"shortcutNameUrl\": null,\n            \"linkedVideoId\": null,\n            \"autoAssociateVod\": false,\n            \"redirectVod\": false,\n            \"customFields\": [\n                {\n                    \"id\": \"a4a7da66-971c-4e6b-9774-032d6982a3c8\",\n                    \"name\": \"RecipeType\",\n                    \"value\": \"Lunch\",\n                    \"required\": false,\n                    \"displayedToUsers\": false,\n                    \"fieldType\": \"Text\"\n                }\n            ]\n        }\n    ],\n    \"total\": 2\n}"
+						},
+						{
+							"name": "Custom Fields - JSON Body",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "VBrick {{token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"sortField\": \"Title\",\r\n    \"customFields\": [{\r\n        \"name\": \"RecipeType\",\r\n        \"value\": \"Breakfast\"\r\n    }]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/search/scheduled-events",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"search",
+										"scheduled-events"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 14:28:07 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "cache-control",
+									"value": "no-cache, no-store, must-revalidate, no-transform"
+								},
+								{
+									"key": "expires",
+									"value": "-1"
+								},
+								{
+									"key": "vary",
+									"value": "Accept"
+								},
+								{
+									"key": "link",
+									"value": "</api/scheduled-events.xml>; rel=\"application/xml\""
+								},
+								{
+									"key": "x-content-type-options",
+									"value": "nosniff"
+								},
+								{
+									"key": "referrer-policy",
+									"value": "strict-origin-when-cross-origin"
+								},
+								{
+									"key": "x-xss-protection",
+									"value": "1; mode=block"
+								},
+								{
+									"key": "x-download-options",
+									"value": "noopen"
+								},
+								{
+									"key": "strict-transport-security",
+									"value": "max-age=31536000; includeSubDomains"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"scrollId\": null,\n    \"events\": [\n        {\n            \"id\": \"a67f7744-0fa0-4b26-b606-8cd90011da00\",\n            \"title\": \"All About Porridge\",\n            \"description\": \"\",\n            \"startDate\": \"2021-08-04T19:53:31Z\",\n            \"endDate\": \"2021-08-04T20:53:31Z\",\n            \"listingType\": \"Private\",\n            \"eventUrl\": \"https://YOUR_REV_TENANT_URL/#/events/a67f7744-0fa0-4b26-b606-8cd90011da00\",\n            \"backgroundImages\": [],\n            \"categories\": [],\n            \"tags\": [],\n            \"unlisted\": false,\n            \"estimatedAttendees\": 0,\n            \"lobbyTimeMinutes\": 15,\n            \"preProduction\": null,\n            \"shortcutName\": null,\n            \"shortcutNameUrl\": null,\n            \"linkedVideoId\": null,\n            \"autoAssociateVod\": true,\n            \"redirectVod\": true,\n            \"customFields\": [\n                {\n                    \"id\": \"a4a7da66-971c-4e6b-9774-032d6982a3c8\",\n                    \"name\": \"RecipeType\",\n                    \"value\": \"Breakfast\",\n                    \"required\": false,\n                    \"displayedToUsers\": false,\n                    \"fieldType\": \"Text\"\n                }\n            ]\n        }\n    ],\n    \"total\": 1\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Audit",
+			"item": [
+				{
+					"name": "User Access",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"description": "(Required) Use the Authentication token received from the response of the POST auth API request as the Authorization header value. See: POST auth for details.",
+								"key": "Authorization",
+								"value": "VBrick  {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{revurl}}/network/audit/accounts/:accountId/userAccess?fromDate=<dateTime>&toDate=<dateTime>&nextContinuationToken=<string>",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"network",
+								"audit",
+								"accounts",
+								":accountId",
+								"userAccess"
 							],
 							"query": [
 								{
-									"key": "after",
-									"value": "{{after-date}}"
+									"key": "fromDate",
+									"value": "<dateTime>",
+									"description": "(Required) valid start date."
 								},
 								{
-									"key": "before",
-									"value": "{{before-date}}"
+									"key": "toDate",
+									"value": "<dateTime>",
+									"description": "(Required) valid end date greater than the specified start date."
+								},
+								{
+									"key": "nextContinuationToken",
+									"value": "<string>",
+									"description": "id from subsequent request to get next set of records."
+								}
+							],
+							"variable": [
+								{
+									"key": "accountId",
+									"value": null,
+									"description": "ID of Rev Account. ID included in URL of Rev Admin page"
 								}
 							]
 						}
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "Zones",
+			"item": [
+				{
+					"name": "Get Zones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"description": "(Required) Use the Authentication token received from the response of the POST auth API request as the Authorization header value. See: POST auth for details.",
+								"key": "Authorization",
+								"value": "VBrick {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{revurl}}/api/v2/zones",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"zones"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) Use the Authentication token received from the response of the POST auth API request as the Authorization header value. See: POST auth for details.",
+										"key": "Authorization",
+										"value": "VBrick {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{revurl}}/api/v2/zones",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"zones"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 14:55:55 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "vary",
+									"value": "Accept"
+								},
+								{
+									"key": "link",
+									"value": "</api/zones.xml>; rel=\"application/xml\""
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"defaultZone\": {\n        \"id\": \"8a368c8d-a299-4bac-8eb7-07af7111ff31\",\n        \"name\": \"Default Zone\",\n        \"supportsMulticast\": true,\n        \"targetDevices\": [\n            {\n                \"deviceType\": \"Dme\",\n                \"liveOnly\": false,\n                \"deviceId\": \"2fbc891b-a67e-4920-b787-fcbdd68307ca\",\n                \"streams\": [\n                    \"ffmpeg-RTMP\",\n                    \"hls-stream-HLS\"\n                ],\n                \"isActive\": true\n            }\n        ],\n        \"slideDelay\": {\n            \"overrideAccount\": false,\n            \"isEnabled\": true,\n            \"delaySeconds\": 0\n        },\n        \"revConnectEnabled\": false,\n        \"revConnectSetting\": null\n    },\n    \"zones\": [\n        {\n            \"id\": \"6648f9ea-261e-40ce-80c0-aa8679752726\",\n            \"parentZoneId\": null,\n            \"name\": \"TopLevel\",\n            \"supportsMulticast\": false,\n            \"ipAddresses\": [\n                \"63.112.42.66\",\n                \"63.26.116.21\"\n            ],\n            \"ipAddressRanges\": [\n                {\n                    \"start\": \"63.1.64.0\",\n                    \"end\": \"63.1.96.255\"\n                }\n            ],\n            \"targetDevices\": [\n                {\n                    \"deviceType\": \"Dme\",\n                    \"liveOnly\": false,\n                    \"deviceId\": \"c36f2a75-20e3-416a-9c54-d88db58049f4\",\n                    \"streams\": [],\n                    \"isActive\": true\n                }\n            ],\n            \"childZones\": [\n                {\n                    \"id\": \"0cb9d3fc-df04-49ef-b40a-548e23252d33\",\n                    \"parentZoneId\": \"6648f9ea-261e-40ce-80c0-aa8679752726\",\n                    \"name\": \"Child\",\n                    \"supportsMulticast\": false,\n                    \"ipAddresses\": [],\n                    \"ipAddressRanges\": [\n                        {\n                            \"start\": \"100.0.0.1\",\n                            \"end\": \"120.0.0.0\"\n                        }\n                    ],\n                    \"targetDevices\": [\n                        {\n                            \"deviceType\": \"Custom\",\n                            \"liveOnly\": true,\n                            \"deviceId\": \"2fbc891b-a67e-4920-b787-fcbdd68307ca\",\n                            \"streams\": [\n                                \"ffmpeg-RTSP\",\n                                \"hls-stream-HLS\"\n                            ],\n                            \"isActive\": true\n                        }\n                    ],\n                    \"childZones\": [],\n                    \"slideDelay\": {\n                        \"overrideAccount\": true,\n                        \"isEnabled\": true,\n                        \"delaySeconds\": 2\n                    },\n                    \"revConnectEnabled\": false,\n                    \"revConnectSetting\": {\n                        \"disableFallback\": false,\n                        \"maxZoneMeshes\": 0,\n                        \"groupPeersByZoneIPAddresses\": false,\n                        \"revConnectConfig\": null\n                    }\n                }\n            ],\n            \"slideDelay\": {\n                \"overrideAccount\": false,\n                \"isEnabled\": true,\n                \"delaySeconds\": 0\n            },\n            \"revConnectEnabled\": false,\n            \"revConnectSetting\": null\n        }\n    ],\n    \"accountId\": \"3f629565-a5e3-4e86-bc77-6cc64c0652aa\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Add Zone",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Example Create Zone\",\n    \"parentZoneId\": null,\n    \"supportsMulticast\": false,\n    \"ipAddresses\": [\"100.100.100.100\"],\n    \"ipAddressRanges\": [\n        {\n            \"start\": \"30.0.0.0\",\n            \"end\": \"30.255.255.255\"\n        }\n    ],\n    \"targetDevices\": [\n        {\n            \"deviceType\": \"Dme\",\n            \"deviceId\": \"12341234-1234-1234-1234-123412341234\",\n            \"liveOnly\": false,\n            \"streams\": [\"at_least_one_stream_name\"]\n        }\n    ],\n    \"revConnectEnabled\": false,\n    \"revConnectSetting\": {\n        \"disableFallback\": false,\n        \"maxZoneMeshes\": 16,\n        \"groupPeersByZoneIPAddresses\": true\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{revurl}}/api/v2/zones",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"zones"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Successful response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "VBrick {{token}}",
+										"description": "auth for Rev API",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Example Create Zone\",\n    \"parentZoneId\": null,\n    \"supportsMulticast\": false,\n    \"ipAddresses\": [\"100.100.100.100\"],\n    \"ipAddressRanges\": [\n        {\n            \"start\": \"30.0.0.0\",\n            \"end\": \"30.255.255.255\"\n        }\n    ],\n    \"targetDevices\": [\n        {\n            \"deviceType\": \"Dme\",\n            \"deviceId\": \"12341234-1234-1234-1234-123412341234\",\n            \"liveOnly\": false,\n            \"streams\": [\"at_least_one_stream_name\"]\n        }\n    ],\n    \"revConnectEnabled\": false,\n    \"revConnectSetting\": {\n        \"disableFallback\": false,\n        \"maxZoneMeshes\": 16,\n        \"groupPeersByZoneIPAddresses\": true\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v2/zones",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"zones"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n \"zoneId\": \"bbcdbac2-df25-4fcd-bbc3-b0a0d2dd0011\"\n}"
+						},
+						{
+							"name": "Validation Failed",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Example Create Zone\",\n    \"parentZoneId\": null,\n    \"supportsMulticast\": false,\n    \"ipAddresses\": [\"100.100.100.100\"],\n    \"ipAddressRanges\": [\n        {\n            \"start\": \"30.0.0.0\",\n            \"end\": \"30.255.255.255\"\n        }\n    ],\n    \"targetDevices\": [\n        {\n            \"deviceType\": \"Dme\",\n            \"deviceId\": \"12341234-1234-1234-1234-123412341234\",\n            \"liveOnly\": false,\n            \"streams\": [\"at_least_one_stream_name\"]\n        }\n    ],\n    \"revConnectEnabled\": false,\n    \"revConnectSetting\": {\n        \"disableFallback\": false,\n        \"maxZoneMeshes\": 16,\n        \"groupPeersByZoneIPAddresses\": true\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{revurl}}/api/v2/zones",
+									"host": [
+										"{{revurl}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"zones"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 15:15:25 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"code\": \"MalformedRequest\",\n    \"detail\": \"Invalid Zone Devices: Device:Dme Id:12341234-1234-1234-1234-123412341234 \"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Zone",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "VBrick {{token}}",
+								"description": "auth for Rev API",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Example Create Zone\",\n    \"supportsMulticast\": false,\n    \"ipAddresses\": [\"100.100.100.100\"],\n    \"ipAddressRanges\": [\n        {\n            \"start\": \"30.0.0.0\",\n            \"end\": \"30.255.255.255\"\n        }\n    ],\n    \"targetDevices\": [\n        {\n            \"deviceType\": \"Dme\",\n            \"deviceId\": \"12341234-1234-1234-1234-123412341234\",\n            \"liveOnly\": false,\n            \"streams\": [\"at_least_one_stream_name\"]\n        }\n    ],\n    \"revConnectEnabled\": false,\n    \"revConnectSetting\": {\n        \"disableFallback\": false,\n        \"maxZoneMeshes\": 16,\n        \"groupPeersByZoneIPAddresses\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{revurl}}/api/v2/zones/:zoneId",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"zones",
+								":zoneId"
+							],
+							"variable": [
+								{
+									"key": "zoneId",
+									"value": null,
+									"description": "ID of Zone in question"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Zone",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "VBrick {{token}}",
+								"description": "auth for Rev API",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{revurl}}/api/v2/zones/:zoneId",
+							"host": [
+								"{{revurl}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"zones",
+								":zoneId"
+							],
+							"variable": [
+								{
+									"key": "zoneId",
+									"value": null,
+									"description": "ID of Zone in question"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Zone Devices",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "VBrick {{token}}",
+								"description": "auth for Rev API",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://YOUR_REV_TENANT_URL/api/v2/zonedevices",
+							"protocol": "https",
+							"host": [
+								"YOUR_REV_TENANT_URL"
+							],
+							"path": [
+								"api",
+								"v2",
+								"zonedevices"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Zone Devices",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "VBrick {{token}}",
+										"description": "auth for Rev API",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://YOUR_REV_TENANT_URL/api/v2/zonedevices",
+									"protocol": "https",
+									"host": [
+										"YOUR_REV_TENANT_URL"
+									],
+									"path": [
+										"api",
+										"v2",
+										"zonedevices"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Server",
+									"value": "openresty"
+								},
+								{
+									"key": "Date",
+									"value": "Mon, 30 Aug 2021 15:25:16 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "vary",
+									"value": "Accept"
+								},
+								{
+									"key": "link",
+									"value": "</api/zonedevices.xml>; rel=\"application/xml\""
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"devices\": [\n        {\n            \"id\": \"12341234-1234-1234-1234-123412341234\",\n            \"deviceType\": \"Dme\",\n            \"name\": \"Example DME\",\n            \"macAddresses\": [\n                \"001122334455\"\n            ],\n            \"isActive\": true,\n            \"prepositionContent\": false,\n            \"isDeleting\": false,\n            \"healthStatus\": \"Error\",\n            \"isVideoStorageDevice\": false,\n            \"isDestination\": true,\n            \"videoStreams\": [\n                {\n                    \"name\": \"ffmpeg-RTMP\",\n                    \"url\": \"rtmp://12.18.15.6:1935/live/ffmpeg\",\n                    \"encodingType\": \"H264\",\n                    \"isMulticast\": false,\n                    \"isVbrickMulticast\": false\n                },\n                {\n                    \"name\": \"ffmpeg-RTSP\",\n                    \"url\": \"rtsp://12.18.15.6:5544/ffmpeg\",\n                    \"encodingType\": \"H264\",\n                    \"isMulticast\": false,\n                    \"isVbrickMulticast\": false\n                }\n            ],\n            \"isDmeDeviceSyncScheduled\": false,\n            \"allowDmeDeviceSync\": false,\n            \"isDmeDeviceSyncing\": false,\n            \"isDmeDeviceSyncCancelling\": false,\n            \"dmeDeviceAutomaticMulticastEnabled\": false,\n            \"status\": null,\n            \"offlineConnectorNodes\": 0,\n            \"activeConnectorNodes\": 0,\n            \"ldapImportType\": \"BySelectedGroups\",\n            \"ldapUsersProfileImageSyncStatus\": null,\n            \"sharedAuthKey\": null,\n            \"controlMfStbDevice\": false\n        },\n        {\n            \"id\": \"2fbc891b-a67e-4920-b787-fcbdd68307ca\",\n            \"deviceType\": \"Custom\",\n            \"name\": \"Example Custom Device\",\n            \"macAddresses\": [\n                \"12.9.7.123\"\n            ],\n            \"isActive\": true,\n            \"prepositionContent\": false,\n            \"isDeleting\": false,\n            \"healthStatus\": \"Healthy\",\n            \"isVideoStorageDevice\": false,\n            \"isDestination\": true,\n            \"videoStreams\": [\n                {\n                    \"name\": \"hls-stream-HLS\",\n                    \"url\": \"http://1.0.0.5/forbidden/playlist.m3u8\",\n                    \"encodingType\": \"HLS\",\n                    \"isMulticast\": false,\n                    \"isVbrickMulticast\": false\n                },\n                {\n                    \"name\": \"ffmpeg-RTMP\",\n                    \"url\": \"rtmp://1.0.0.5:1935/live/forbiddenSD\",\n                    \"encodingType\": \"H264\",\n                    \"isMulticast\": false,\n                    \"isVbrickMulticast\": false\n                }\n            ],\n            \"isDmeDeviceSyncScheduled\": false,\n            \"allowDmeDeviceSync\": false,\n            \"isDmeDeviceSyncing\": false,\n            \"isDmeDeviceSyncCancelling\": false,\n            \"dmeDeviceAutomaticMulticastEnabled\": false,\n            \"status\": null,\n            \"offlineConnectorNodes\": 0,\n            \"activeConnectorNodes\": 0,\n            \"ldapImportType\": \"BySelectedGroups\",\n            \"ldapUsersProfileImageSyncStatus\": null,\n            \"sharedAuthKey\": null,\n            \"controlMfStbDevice\": false\n        }\n    ]\n}"
+						}
+					]
 				}
 			]
 		}
@@ -729,47 +2218,181 @@
 				"type": "text/javascript",
 				"exec": [
 					"/*",
-					"This code chunk is a helper to verify if you've signed in already, and will warn you if you haven't logged in yet or the session expired.",
+					"This code chunk is a helper to automatically manage your login session. It's run before each request made from within this collection. If you attempt to make an API call that requires authentication then it will automatically login/extend your session before making the call. Additionally, it will automatically add the \"Authorization\" header to each API request for you.",
+					"",
 					"*/",
 					"",
+					"// set auto extend behavior from collection variables (or environment) - default True",
+					"let autoLoginAndExtendSession = !/false|no|0/i.test(pm.variables.get('autoLoginAndExtendSession'));",
+					"// set auto add headers behavior from collection variables (or environment) - default True",
+					"let autoAddAuthorizationHeader = !/false|no|0/i.test(pm.variables.get('autoAddAuthorizationHeader'));",
+					"",
+					"// auto validate that user isn't using the default URL in the Rev API docs",
+					"let autoFixDefaultURL = !/false|no|0/i.test(pm.variables.get('autoAddAuthorizationHeader'));",
+					"",
 					"// check if call is initial login call",
-					"var isAuthCall = /v\\d\\/user\\/login|v\\d\\/authenticate$/.test(pm.request.url);",
+					"var reqPath = pm.request.url.path.slice(2, 4).join('/');",
+					"// calls that should have no auth header",
+					"var isAuthCall = reqPath === 'user/login' || reqPath === 'authenticate';",
+					"// calls that shouldn't be touched by autoLoginAndExtendSession",
+					"var isSessinManagementCall = reqPath.startsWith('tokens/') || reqPath.includes('/extend-session-timeout');",
 					"",
-					"function validateExpiration() {",
-					"  // if not a login verify that a valid session token has been set",
-					"  if (!isAuthCall) {",
-					"      var expiration = new Date(pm.variables.get(\"expiration\"));",
+					"autoLoginAndExtendSession = autoLoginAndExtendSession && !(isSessinManagementCall || isAuthCall);",
 					"",
-					"      // expect valid session (set and not expired)",
-					"      if (isNaN(expiration.getTime()) || expiration.getTime() < Date.now()) {",
-					"          console.warn('Expired/invalid session - call will likely fail. Use Login request to generate a new authorization token');",
-					"      } else {",
-					"          // warn if session is soon to expire",
-					"          var deltaSeconds = (expiration.getTime() - Date.now()) / 1000;",
-					"          var warningThresholdSeconds = 1 * 60;",
-					"          if (deltaSeconds < warningThresholdSeconds) {",
-					"              console.warn(`Session will expire in ${Math.round(deltaSeconds)} seconds. Consider using the \"Extend Session\" API call.`);",
-					"          }",
-					"      }",
-					"  }",
+					"var revUrl = (pm.variables.get('revurl') || '').toLowerCase();",
+					"var isTokenLogin = pm.variables.get('userApiKey') && pm.variables.get('userSecret');",
+					"var expiration = new Date(pm.variables.get(\"expiration\"));",
+					"",
+					"function ensureVariablesSet() {",
+					"    const DEFAULT_URL = 'https://your_rev_tenant_url';",
+					"    var reqUrl = pm.request.url.toString().toLowerCase();",
+					"",
+					"    // check if environment isn't setup",
+					"    if (revUrl === DEFAULT_URL) {",
+					"        if (reqUrl.startsWith('{{revurl}}') || reqUrl.startsWith(DEFAULT_URL)) {",
+					"            throw new Error('Whoops! You need to set the \"revurl\" variable and Rev login credentials (userApiKey/userSecret or username/password) in your Environment before using this collection. See https://learning.postman.com/docs/sending-requests/variables/ or click the \"Documentation\" icon (📄) to the right for more information.');",
+					"        }",
+					"    } else if (reqUrl.startsWith(DEFAULT_URL)) {",
+					"        if (autoFixDefaultURL) {",
+					"            console.warn(`Request (${pm.info.requestName}) - Replacing origin ${DEFAULT_URL.toUpperCase()} with correct value ${revUrl} - you should update this request (${reqUrl})`);",
+					"            pm.request.url.update(reqUrl.replace(DEFAULT_URL, revUrl));",
+					"        } else {",
+					"            throw new Error(`Whoops! Invalid URL. If you copied this URL from the API documentation then replace ${DEFAULT_URL.toUpperCase()} with \"{{revurl}}\"`);",
+					"        }",
+					"    }",
+					"}",
+					"",
+					"function login(cb) {",
+					"    console.log('Logging in automatically. To change this behavior set \"autoLoginAndExtendSession\" to \"false\" in your Environment variables');",
+					"    var endpoint = isTokenLogin",
+					"        ? '/api/v2/authenticate'",
+					"        : '/api/v2/user/login';",
+					"",
+					"    var payload = isTokenLogin",
+					"        ? { apiKey: pm.variables.get('userApiKey'), secret: pm.variables.get('userSecret') }",
+					"        : { username: pm.variables.get('username'), password: pm.variables.get('password') };",
+					"",
+					"    pm.sendRequest({",
+					"        url: `${revUrl}${endpoint}`,",
+					"        method: 'POST',",
+					"        header: {",
+					"            'Content-Type': 'application/json',",
+					"            'Accept': 'application/json'",
+					"        },",
+					"        body: {",
+					"            mode: 'raw',",
+					"            raw: JSON.stringify(payload)",
+					"        }",
+					"    }, (err, response) => {",
+					"        if (err) {",
+					"            console.error('Authenticate failed', err);",
+					"            cb(false);",
+					"            return;",
+					"        }",
+					"        if (!response || response.code !== 200) {",
+					"            console.error('Failed to login', response);",
+					"            cb(false);",
+					"            return;",
+					"        }",
+					"        var jsonData = response.json();",
+					"        ",
+					"        // token used for subsequent requests",
+					"        pm.environment.set(\"token\", jsonData.token);",
+					"        // can check to see if token has expired",
+					"        pm.environment.set(\"expiration\", jsonData.expiration);",
+					"        if (jsonData.userId) {",
+					"            pm.variables.set(\"userId\", jsonData.userId);",
+					"        }",
+					"        cb(true);",
+					"    });",
+					"}",
+					"",
+					"function extend(cb) {",
+					"    console.log('Extending session automatically. To change this behavior set \"autoLoginAndExtendSession\" to \"false\" in your Environment variables');",
+					"    var revUrl = pm.variables.get('revurl');",
+					"    var apiKey = pm.variables.get('userApiKey');",
+					"    var token = pm.variables.get('token');",
+					"",
+					"    const req = {",
+					"        method: 'POST',",
+					"        headers: {",
+					"            'Authorization': `VBrick ${token}`,",
+					"            'Accept': 'application/json',",
+					"            'Content-Length': '0'",
+					"        }",
+					"    };",
+					"    if (isTokenLogin) {",
+					"        req.url = `${revUrl}/api/v2/auth/extend-session-timeout/${apiKey}`;",
+					"        req.headers['Content-Length'] = '0';",
+					"    } else {",
+					"        req.url = `${revUrl}/api/v2/user/extend-sesion-timeout`;",
+					"        req.headers['Content-Type'] = 'application/json';",
+					"        req.body = {",
+					"            mode: 'raw',",
+					"            raw: JSON.stringify({ userId })",
+					"        };",
+					"    }",
+					"    pm.sendRequest(req, (err, res) => {",
+					"        if (err) {",
+					"            console.error('Extend session failed', err);",
+					"        } else if (!res || res.code !== 200) {",
+					"            console.error('Failed to extend', res);",
+					"        } else {",
+					"            var jsonData = res.json();",
+					"            // update with latest expires value",
+					"            pm.environment.set(\"expiration\", jsonData.expiration);",
+					"            cb(true);",
+					"            return;",
+					"        }",
+					"        cb(false);",
+					"    });",
 					"}",
 					"",
 					"function addAuthHeader() {",
-					"  var isAuthorized = isAuthCall || pm.request.headers.has('Authorization');",
-					"  var token = pm.variables.get('token');",
-					"  // don't add auth header if not necessary, or if no token yet",
-					"  if (isAuthorized || !token) { return; }",
-					"  ",
-					"  console.debug('Adding Authorization HTTP Header automatically');",
-					"  pm.request.headers.add({ key: 'Authorization', value: `VBrick ${token}`});",
+					"    // check if adding authorization is configured",
+					"    if (!autoAddAuthorizationHeader) {",
+					"        return;",
+					"    }",
+					"    var isAuthorized = isAuthCall || pm.request.headers.has('Authorization');",
+					"    var token = pm.variables.get('token');",
+					"",
+					"    // don't add auth header if not necessary, or if no token yet",
+					"    if (isAuthorized || !token) { return; }",
+					"",
+					"    console.debug('Adding Authorization HTTP Header automatically. To change this behavior set \"autoAddAuthorizationHeader\" to \"false\" in your Environment variables');",
+					"    pm.request.headers.add({ key: 'Authorization', value: `VBrick ${token}` });",
 					"}",
 					"",
-					"validateExpiration()",
-					"addAuthHeader();",
+					"function checkShouldLogin() {",
+					"    if (isAuthCall) {",
+					"        return false;",
+					"    }",
+					"    // if not a login verify that a valid session token has been set",
+					"    ",
+					"    // warn if session is soon to expire",
+					"    var deltaSeconds = (expiration.getTime() - Date.now()) / 1000;",
+					"    var warningThresholdSeconds = 1 * 60;",
+					"    if (deltaSeconds <= 0) {",
+					"        if (autoLoginAndExtendSession) {",
+					"            return login;",
+					"        }",
+					"        console.warn('Expired/invalid session - call will likely fail. Use Login request to generate a new authorization token');",
+					"    } else if (deltaSeconds < warningThresholdSeconds) {",
+					"        if (autoLoginAndExtendSession) {",
+					"            return extend;",
+					"        }",
+					"        console.warn(`Session will expire in ${Math.round(deltaSeconds)} seconds. Consider using the \"Extend Session\" API call.`);",
+					"    }",
+					"    return false;",
+					"}",
 					"",
-					"",
-					"",
-					"",
+					"ensureVariablesSet()",
+					"var preRequestOp = checkShouldLogin();",
+					"if (autoLoginAndExtendSession && preRequestOp) {",
+					"    preRequestOp(addAuthHeader);",
+					"} else {",
+					"    addAuthHeader();",
+					"}",
 					""
 				]
 			}
@@ -786,8 +2409,20 @@
 	],
 	"variable": [
 		{
-			"key": "videoId",
-			"value": "061f7ac3-6791-432a-9b19-67e1cc4b980b"
+			"key": "autoLoginAndExtendSession",
+			"value": "true"
+		},
+		{
+			"key": "autoAddAuthorizationHeader",
+			"value": "true"
+		},
+		{
+			"key": "autoFixDefaultURL",
+			"value": "true"
+		},
+		{
+			"key": "revurl",
+			"value": "https://YOUR_REV_TENANT_URL"
 		}
 	]
 }
