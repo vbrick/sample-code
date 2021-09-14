@@ -8,6 +8,9 @@ Note: Sample code provided here are examples. This sample code is distributed "a
 
 ## Contents
 
+### Open API
+* [`openapi.json`](openapi.json) - A OpenAPI v3 specification of the Rev APIs
+
 ### Postman
 
 * [`vbrick_postman_collection.json`](vbrick_postman_collection.json) - A [Postman](https://www.postman.com/) collection that demonstrates logging in via Username / User API key as well as accessing some common API endpoints
