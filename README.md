@@ -4,6 +4,8 @@ This repository holds various sample code and examples for using the [Vbrick Rev
 
 Refer to the Vbrick [documentation](https://revdocs.vbrick.com/reference) for more information.
 
+Note: Sample code provided here are examples. This sample code is distributed "as is", with no warranty expressed or implied, and no guarantee for accuracy or applicability to your purpose.
+
 ## Contents
 
 ### Postman
