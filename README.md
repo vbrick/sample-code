@@ -20,6 +20,9 @@ Note: Sample code provided here are examples. This sample code is distributed "a
 * [`rev-client`](nodejs/rev-client) - **DEPRECATED** a Typescript wrapper around the Rev API - see full featured [`rev-client-js`](https://github.com/vbrick/rev-client-js) library above
 * [`minimal-sample.js`](nodejs/minimal-sample.js) - a minimal no-depenancy example of authenticating with Rev and then making an API request
 
+### python
+* [`rev-client-python`](https://github.com/vbrick/rev-client-python) - python library for interacting with Rev API
+
 ### .Net
 
 * [`RevAPi`](dotnet/RevAPi) - A sample .Net project for using OAuth with Rev
