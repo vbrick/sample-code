@@ -1,6 +1,9 @@
-# rev-client
+# rev-client (DEPRECATED)
 
 This is a sample node.js client library for interacting with the [Vbrick Rev API](https://revdocs.vbrick.com/reference). See example.js or `src/example.ts` for sample usage.
+
+## Deprecated
+See our new client library available on [npm](https://www.npmjs.com/package/@vbrick/rev-client) and [github](https://github.com/vbrick/rev-client-js)
 
 ## Usage
 
