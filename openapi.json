@@ -13078,6 +13078,10 @@
             "type": "number",
             "format": "float"
           },
+          "throughputPercent": {
+            "type": "number",
+            "format": "float"
+          },
           "throughputHealth": {
             "$ref": "#/components/schemas/healthEnum"
           },
@@ -16845,28 +16849,50 @@
           },
           "description": {
             "type": "string"
+          },
+          "roleType": {
+            "type": "string",
+            "enum":[
+              "AccountAdmin",
+              "MediaAdmin",
+              "EventAdmin",
+              "EventHost",
+              "InternalEventHost",
+              "MediaContributor",
+              "InternalMediaContributor",
+              "MediaViewer",
+              "TeamCreator",
+              "CategoryCreator",
+              "VodAnalyst",
+              "EventAnalyst",
+              "RevIqUser",
+              "ChannelCreator"
+            ]
           }
         }
       },
       "searchAccessEntityItem": {
         "type": "object",
         "properties": {
-          "UserName": {
+          "userName": {
             "type": "string"
           },
-          "FirstName": {
+          "firstName": {
             "type": "string"
           },
-          "LastName": {
+          "lastName": {
             "type": "string"
           },
-          "Email": {
+          "email": {
             "type": "string"
           },
-          "Id": {
+          "id": {
             "type": "string"
           },
-          "EntityType": {
+          "entityType": {
+            "type": "string"
+          },
+          "profileImageUri": {
             "type": "string"
           }
         }
@@ -17459,7 +17485,7 @@
           "zones": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/zone"
+              "$ref": "#/components/schemas/zoneDetails"
             }
           }
         }
@@ -17519,7 +17545,7 @@
           }
         }
       },
-      "zone": {
+      "zoneDetails": {
         "type": "object",
         "properties": {
           "id": {
@@ -17549,7 +17575,60 @@
           "childZones": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/zone"
+              "$ref": "#/components/schemas/childZone"
+            }
+          },
+          "supportsMulticast": {
+            "type": "boolean"
+          },
+          "slideDelay": {
+            "$ref": "#/components/schemas/zoneSlideDelay"
+          },
+          "revConnectEnabled": {
+            "type": "boolean"
+          },
+          "revConnectSetting": {
+            "$ref": "#/components/schemas/zoneRevConnectSetting"
+          },
+          "zoneRendition": {
+            "$ref": "#/components/schemas/zoneRendition"
+          }
+        }
+      },
+      "childZone": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "parentZoneId": {
+            "type": "string"
+          },
+          "ipAddresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ipAddressRanges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ipAddressRange"
+            }
+          },
+          "targetDevices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/zoneTargetDevice"
+            }
+          },
+          "childZones": {
+            "type": "array",
+            "description": "An array of childzone objects of arbitrary nested depth, excluded here to avoid circular references.",
+            "items": {
+              "type": "object",
+              "properties": {},
+              "nullable": true
             }
           },
           "supportsMulticast": {
@@ -17851,6 +17930,17 @@
       "editPlaylistRequest": {
         "type": "object",
         "properties": {
+          "playlistVideoDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/editPlaylistVideos"
+            }
+          }
+        }
+      },
+      "editPlaylistVideos": {
+        "type": "object",
+        "properties": {
           "videoId": {
             "type": "string",
             "description": "Video Ids to edit in the playlist"
@@ -17872,6 +17962,12 @@
             "type": "string"
           },
           "title": {
+            "type": "string"
+          },
+          "ownerFullName": {
+            "type": "string"
+          },
+          "ownerProfileImageUri": {
             "type": "string"
           }
         }
