@@ -5019,6 +5019,47 @@
         "x-codegen-request-body-name": "eventAccessControl"
       }
     },
+    "/api/v2/scheduled-events/{eventId}/is-public":
+    { "get": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Get Public Webcast Status",
+        "description": "Returns true if the webcast is Public or an unauthorized HTTP Status Code if it is Private for security reasons.",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webcastIsPublicResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+
     "/api/v2/scheduled-events/delete-status/{jobId}": {
       "get": {
         "tags": [
@@ -16874,25 +16915,25 @@
       "searchAccessEntityItem": {
         "type": "object",
         "properties": {
-          "userName": {
+          "UserName": {
             "type": "string"
           },
-          "firstName": {
+          "FirstName": {
             "type": "string"
           },
-          "lastName": {
+          "LastName": {
             "type": "string"
           },
-          "email": {
+          "Email": {
             "type": "string"
           },
-          "id": {
+          "Id": {
             "type": "string"
           },
-          "entityType": {
+          "EntityType": {
             "type": "string"
           },
-          "profileImageUri": {
+          "ProfileImageUri": {
             "type": "string"
           }
         }
@@ -18746,6 +18787,14 @@
           "Group",
           "Channel"
         ]
+      },
+      "webcastIsPublicResponse": {
+        "type": "object",
+        "properties": {
+          "isPublic": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }
