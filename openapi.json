@@ -1241,6 +1241,72 @@
         }
       }
     },
+    "/api/v2/videos/{videoId}/summary-statistics": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Summary Statistics",
+        "description": "Retrieves the summary statistics of a given video and most often relates to viewing statistics such as total views, completion rate, unique views and so forth. You can specify a before and after date range or return the entire summary by leaving before and after dates blank.",
+        "operationId": "getVideoSummary",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video for summary retrieval",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "If an after date is supplied, summary statistics are calculated based on views from <em>after</em> this date. If <em>no</em> dates are specified, summary statistics for <em>all</em> time is returned.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "If a before date is supplied, summary statistics are calculated based on views <em>before</em> this date. If <em>no</em> dates are specified, summary statistics for <em>all</em> time will be returned.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/videoSummaryStats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/uploads/videos/{videoId}": {
       "put": {
         "tags": [
@@ -4178,8 +4244,9 @@
         "tags": [
           "Videos"
         ],
-        "summary": "Get Video Report",
-        "description": "This endpoint returns detailed viewing information for one or more videos. The report includes individual video viewing sessions, along with information on whether each user completed the video.<p>If video Ids are not specified in the call, the response includes data for every video in your Rev account. Maximum duration for a reporting period is 31 days.",
+        "deprecated": true,
+        "summary": "Get Video Report (Deprecated)",
+        "description": "This is a deprecated endpoint. Use <a href=/reference/postvideoreport>Get Video Report</a> instead.",
         "operationId": "getVideoReport",
         "parameters": [
           {
@@ -4188,7 +4255,7 @@
           {
             "name": "videoIds",
             "in": "query",
-            "description": "Id of video to return data for. If no Ids are specified, data for all videos in the system are returned.",
+            "description": "Id of video to return reporting data for. If no Ids are specified, data for all videos in the account are returned.",
             "schema": {
               "type": "string"
             }
@@ -4222,6 +4289,52 @@
                   "items": {
                     "$ref": "#/components/schemas/videoViewReportEntry"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Report",
+        "description": "This endpoint returns detailed viewing information for one or more videos. The report includes individual video viewing sessions, along with information on whether each user completed the video.<p>If video Ids are not specified in the call, the response includes data for every video in your Rev account. Maximum duration for a reporting period is 31 days.",
+        "operationId": "postVideoReport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/videosReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/videoReportResponse"
                 }
               }
             }
@@ -11232,6 +11345,73 @@
           "Rejected"
         ]
       },
+      "videoSummaryStats": {
+        "type": "object",
+        "properties": {
+          "totalViews": {
+            "type": "integer"
+          },
+          "totalSessions": {
+            "type": "integer"
+          },
+          "totalTime": {
+            "type": "string",
+            "description": "Total viewing time in timespan format (e.g. <code>00:00:00</code>)"
+          },
+          "averageTime": {
+            "type": "string",
+            "description": "Average viewing time in timespan format (e.g. <code>00:00:00</code>)"
+          },
+          "completionRate": {
+            "type": "number",
+            "description": "CompletionRate is in percentage"
+          },
+          "totalUniqueViews": {
+            "type": "integer"
+          },
+          "deviceCounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/deviceAndBrowserCounts"
+            }
+          },
+          "totalViewsByDay": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/videoSummaryTotalviewsByDay"
+            }
+          },
+          "browserCounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/deviceAndBrowserCounts"
+            }
+          }
+        }
+      },
+      "deviceAndBrowserCounts": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "integer"
+          }
+        }
+      },
+      "videoSummaryTotalviewsByDay": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "format": "date"
+          },
+          "value": {
+            "type": "integer"
+          }
+        }
+      },
       "publicVideoListResponse": {
         "type": "object",
         "properties": {
@@ -16533,6 +16713,23 @@
           }
         }
       },
+      "videoReportResponse": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/videoViewReportEntry"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "scrollId": {
+            "type": "string"
+          }
+        }
+      },
       "searchVideoItem": {
         "type": "object",
         "properties": {
@@ -17466,6 +17663,10 @@
           },
           "sipPin": {
             "type": "string"
+          },
+          "audioOnly": {
+            "type": "boolean",
+            "description": "Record only the audio of the SIP call if it's true. It is false by default."
           }
         }
       },
@@ -18793,6 +18994,29 @@
         "properties": {
           "isPublic": {
             "type": "boolean"
+          }
+        }
+      },
+      "videosReportRequest": {
+        "type": "object",
+        "properties": {
+          "videoIds": {
+            "description": "Ids of videos to return data for. If no Ids are specified, data for all videos in the system are returned. Maximum video Ids can be passed are 50.",
+            "type": "string"
+          },
+          "after": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If after date is used, only video views with a start date <em>after</em> the specified date (up to 31 days) are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned, not exceeding 31 days. If <em>no</em> dates are specified, video views between the current date and 31 days in the past from the start date are returned."
+          },
+          "before": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If before date is used, only video views with a start date <em>before</em> the specified date (up to 31 days) are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned, not exceeding 31 days. If <em>no</em> dates are specified, video views between the current date and 31 days in the past from the start date are returned."
+          },
+          "scrollId": {
+            "type": "string",
+            "description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once."
           }
         }
       }
