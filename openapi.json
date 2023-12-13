@@ -2512,6 +2512,310 @@
         "x-codegen-request-body-name": "comment"
       }
     },
+    "/api/v2/videos/{videoId}/external-access": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video External Access",
+        "description": "This endpoint is used to search and paginate through external access entries via an optional query string.",
+        "operationId": "getVideoExternalAccess",
+        "x-sdk-method-name": "getVideoExternalAccess",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to submit emails for external access",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search string",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of video external access entities to get. (By default count is 50)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "scrollId",
+            "in": "query",
+            "description": "If total > count, then provide the scrollId returned from the first request to get the next set of videos like (<code>scrollId=abc</code>)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/searchExternalAccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, no emails or video ids provided"
+          },
+          "401": {
+            "description": "Unauthorized error.",
+            "content": {}
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Add Video External Access",
+        "description": "This endpoint grants external access to a specified video via email address. You can add more than one email address for access to the video.",
+        "operationId": "addVideoExternalAccess",
+        "x-sdk-method-name": "addVideoExternalAccess",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to submit emails for external access",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Request body to be submitted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/addExternalAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Bad request, no emails provided"
+          },
+          "401": {
+            "description": "Unauthorized error.",
+            "content": {}
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        },
+        "x-codegen-request-body-name": "addExternalAccessRequest"
+      },
+      "put": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Renew Video External Access",
+        "description": "This endpoint immediately revokes the current access and generates a new access link and expiration date (if one is in effect). It then emails the user(s) with the new link.",
+        "operationId": "renewVideoExternalAccess",
+        "x-sdk-method-name": "renewVideoExternalAccess",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to submit emails for external access",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Request body to be submitted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/renewExternalAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/renewExternalAccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, no emails provided."
+          },
+          "401": {
+            "description": "Unauthorized error. Parent comment does not exist.",
+            "content": {}
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        },
+        "x-codegen-request-body-name": "renewExternalAccessRequest"
+      },
+      "delete": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Delete Video External Access",
+        "description": "Revokes all email access to the specified video and also <em>deletes</em> all details in the database. This means you may not renew the external access at a later date. To leave details in place for potential renewal, consider using the <a href=/reference/revokevideoexternalaccess>Revoke Video External Access</a> endpoint instead.",
+        "operationId": "deleteVideoExternalAccess",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to delete external access from.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Request body to be submitted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/removeExternalAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad request, no emails provided."
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "404": {
+            "description": "Resource not found error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/videos/{videoId}/external-access/revoke": {
+      "put": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Revoke Video External Access",
+        "description": "Immediately revokes all email access to the specified video but leaves details in place in the database in the event you want to renew them. To delete all details from the database as well, use <a href=/reference/deletevideoexternalaccess>Delete Video External Access</a>.",
+        "operationId": "revokeVideoExternalAccess",
+        "x-sdk-method-name": "revokeVideoExternalAccess",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to submit emails for external access",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Request body to be submitted",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/revokeExternalAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Bad request, no emails provided."
+          },
+          "401": {
+            "description": "Unauthorized error. Parent comment does not exist.",
+            "content": {}
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        },
+        "x-codegen-request-body-name": "revokeExternalAccessRequest"
+      }
+    },
     "/api/v2/videos/{videoId}/transcode-on-demand": {
       "put": {
         "tags": [
@@ -7651,7 +7955,7 @@
           }
         ],
         "requestBody": {
-          "description": "User details to update. Please refer to http://jsonpatch.com/ for the format of the request body.<p>Patch operations on User details editable fields [Email, FirstName, LastName, Title, Phone, Language, RoleIds, GroupIds]</p><p>Operations supported: add,remove,copy,replace,test,move.</p>",
+          "description": "User details to update. Please refer to http://jsonpatch.com/ for the format of the request body.<p>Patch operations on User details editable fields [Email, FirstName, LastName, Title, Phone, Language, ItemStatus, RoleIds, GroupIds]</p><p>Operations supported: add,remove,copy,replace,test,move.</p>",
           "content": {
             "application/json": {
               "schema": {
@@ -11516,6 +11820,12 @@
           "enableComments": {
             "type": "boolean"
           },
+          "enableExternalApplicationAccess": {
+            "type": "boolean"
+          },
+          "enableExternalViewersAccess": {
+            "type": "boolean"
+          },
           "password": {
             "type": "string",
             "description": "This is a shared password for public guests. This field exists only in the response if the user has EDIT permission to the video."
@@ -11918,6 +12228,16 @@
             "description": "Default=true. Allows comments on the video.",
             "default": true
           },
+          "enableExternalApplicationAccess": {
+            "type": "boolean",
+            "description": "Default=false. This enables or disables the ability to allow external application access for a video.",
+            "default": false
+          },
+          "enableExternalViewersAccess": {
+            "type": "boolean",
+            "description": "Default=false. This enables or disables the ability to allow external url access for a video.",
+            "default": false
+          },
           "videoAccessControl": {
             "$ref": "#/components/schemas/videoAccessControl"
           },
@@ -11958,6 +12278,152 @@
             "type": "boolean",
             "description": "Default=false. Displays viewer information over the video for playback on the web.",
             "default": false
+          }
+        }
+      },
+      "addExternalAccessRequest": {
+        "required": [
+          "emails"
+        ],
+        "type": "object",
+        "properties": {
+          "emails": {
+            "type": "array",
+            "description": "Emails to add external access for",
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": "string",
+            "description": "Optional message default=''",
+            "nullable": true,
+            "default": ""
+          },
+          "noEmail": {
+            "type": "boolean",
+            "description": "Send email to each address notifying them of external access. default=false",
+            "nullable": true,
+            "default": false
+          }
+        }
+      },
+      "searchExternalAccessResponseEntity": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "email address this token is associated with"
+          },
+          "whenAdded": {
+            "type": "string",
+            "description": "When this token was added"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of the token."
+          },
+          "grantor": {
+            "type": "string",
+            "description": "who generated this token"
+          },
+          "validUntil": {
+            "type": "string",
+            "description": "the date until this token expires"
+          },
+          "link": {
+            "type": "string",
+            "description": "link to access the resource this token is associated with"
+          },
+          "message": {
+            "type": "string",
+            "description": "optional message assigned when the token was created"
+          }
+        }
+      },
+      "searchExternalAccessResponse": {
+        "required": [
+          "emails"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/searchExternalAccessResponseEntity"
+            }
+          },
+          "scrollId": {
+            "type": "string",
+            "description": "Returned after first page of results, token to use to continue paginating through results."
+          },
+          "total": {
+            "type": "integer",
+            "description": "Maximum number of results to return per page. Default = 50"
+          }
+        }
+      },
+      "removeExternalAccessRequest": {
+        "required": [
+          "emails"
+        ],
+        "type": "object",
+        "properties": {
+          "emails": {
+            "type": "array",
+            "description": "Emails to remove external access for.",
+            "items": {
+              "type": "string"
+            },
+            "nullable": false
+          }
+        }
+      },
+      "renewExternalAccessRequest": {
+        "required": [
+          "emails"
+        ],
+        "type": "object",
+        "properties": {
+          "emails": {
+            "type": "array",
+            "description": "Emails to renew external access for.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "noEmail": {
+            "type": "boolean",
+            "description": "Send email to each address notifying them of external access. default=false",
+            "nullable": true,
+            "default": false
+          }
+        }
+      },
+      "renewExternalAccessResponse": {
+        "type": "object",
+        "properties": {
+          "InvalidEmails": {
+            "type": "array",
+            "description": "Email that external access could not be renewed for.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "revokeExternalAccessRequest": {
+        "required": [
+          "emails"
+        ],
+        "type": "object",
+        "properties": {
+          "emails": {
+            "type": "array",
+            "description": "Emails to revoke external access for.",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -12465,6 +12931,27 @@
           },
           "language": {
             "type": "string"
+          },
+          "userType": {
+            "type": "string",
+            "enum": [
+              "System",
+              "LDAP",
+              "Sso",
+              "SCIM"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Suspended",
+              "Unlicensed",
+              "AwaitingConfirmation",
+              "AwaitingPasswordReset",
+              "AwaitingSecurityQuestionReset",
+              "LockedOut",
+              "Active"
+            ]
           },
           "roles": {
             "type": "array",
@@ -13167,6 +13654,14 @@
           "enableComments": {
             "type": "boolean",
             "description": "Default=true. This enables or disables ability to comment on uploaded video."
+          },
+          "enableExternalApplicationAccess": {
+            "type": "boolean",
+            "description": "Default=false. This enables or disables the ability to allow external application access for a video."
+          },
+          "enableExternalViewersAccess": {
+            "type": "boolean",
+            "description": "Default=false. This enables or disables the ability to allow external url access for a video."
           },
           "videoAccessControl": {
             "$ref": "#/components/schemas/videoAccessControl"
