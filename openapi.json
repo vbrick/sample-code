@@ -2854,6 +2854,44 @@
         }
       }
     },
+    "/api/v2/videos/{videoId}/convert-dual-streams-to-switched-stream": {
+      "put": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Convert Dual Stream to Switched (Single) Stream",
+        "description": "Converts a dual-stream video to a switched-stream (single) video. This endpoint only works for dual stream videos. <p>When you run this API, the MP4 switched-stream version is marked as the original and the HLS switched-stream version remains.</p><p>The HLS dual-stream version is deleted.</p><p>The <strong>hasDualStreams</strong> and <strong>isConvertedToSwitched</strong> parameters are updated accordingly in the <a href=/reference/getvideosdetails>Get Video Details/Metadata</a> and <a href=/reference/searchvideo>Search Video</a> endpoints.</p>",
+        "operationId": "convertDualStreamToSwitchedStream",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to convert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/videos/search": {
       "get": {
         "tags": [
@@ -3026,20 +3064,7 @@
             }
           },
           {
-            "name": "sortField",
-            "in": "query",
-            "description": "If provided, query results are sorted based on field(title, whenUploaded, uploaderName, duration, _score). Default is set to title.",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "title",
-                "whenUploaded",
-                "uploaderName",
-                "duration",
-                "_score"
-              ],
-              "default": "title"
-            }
+            "$ref": "#/components/parameters/videoSearchSortField"
           },
           {
             "$ref": "#/components/parameters/sortDirection"
@@ -4658,6 +4683,63 @@
         }
       }
     },
+	"/api/v2/videos/{videoId}/report": {
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Unique Sessions Report",
+        "description": "This endpoint returns detailed viewing information for a video. It is limited to one session per user within a given time range. It reports the individual viewing session with the maximum viewing time for each user who watched the video, and whether or not each user completed the video. Up to 500 responses can be generated with supported scrolling. Guest user sessions are only reported for authenticated guests.",
+        "operationId": "uniqueVideoSessionsReport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to get report for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/videoReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/videoReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/videos/{videoId}/users/{userId}/status": {
       "get": {
         "tags": [
@@ -4852,6 +4934,68 @@
       }
     },
     "/api/v2/playlists/{playlistId}": {
+      "get": {
+        "tags": [
+          "Playlists"
+        ],
+        "summary": "Get Playlist with Video Details",
+        "description": "Returns a specified playlist and includes all the videos that are part of the playlist. It also returns the playlist type (static or dynamic), the video count, playback URL, and details of the search query if it is a dynamic playlist. You must have access to the playlist or an error is returned.",
+        "operationId": "getPlaylistDetails",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "playlistId",
+            "in": "path",
+            "description": "Id of the playlist to get details",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of videos to get. (By default count is 50)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "scrollId",
+            "in": "query",
+            "description": "If totalVideos > count, then provide the scrollId returned from the first request to get the next set of videos like (<code>scrollId=abc</code>)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/playlistDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
       "put": {
         "tags": [
           "Playlists"
@@ -4959,7 +5103,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/editPlaylistRequest"
+                "$ref": "#/components/schemas/editFeaturedPlaylistRequest"
               }
             }
           },
@@ -5436,8 +5580,8 @@
         "x-codegen-request-body-name": "eventAccessControl"
       }
     },
-    "/api/v2/scheduled-events/{eventId}/is-public":
-    { "get": {
+    "/api/v2/scheduled-events/{eventId}/is-public": {
+      "get": {
         "tags": [
           "Webcasts"
         ],
@@ -5476,7 +5620,6 @@
         }
       }
     },
-
     "/api/v2/scheduled-events/delete-status/{jobId}": {
       "get": {
         "tags": [
@@ -8634,6 +8777,78 @@
         }
       }
     },
+    "/api/v2/search/access-entity/assignable": {
+      "get": {
+        "tags": [
+          "Users & Groups"
+        ],
+        "x-sdk-tags": [
+          "Users",
+          "Groups"
+        ],
+        "summary": "Search assignable Users, Groups and Channels",
+        "description": "Searches the specified access entity (user/group/channel) in Rev for a specified query string that the current user is able to assign. If no entity is specified, then all types are searched.",
+        "operationId": "searchAccessEntityAssignable",
+        "x-sdk-method-name": "search",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Type of access entity to search (user/group/channel). One or more may be provided. If no type is provided, all entities are included.",
+            "schema": {
+              "$ref": "#/components/schemas/accessEntityType"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search string. If no search string is provided, treated as a blank search. Example: If the group parameter is specified with no search string, the first 1000 groups are returned (count parameter default).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scrollId",
+            "in": "query",
+            "description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of access entities to get. (By default count is 1000)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/searchAccessEntitiesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/users/login-report": {
       "get": {
         "tags": [
@@ -11482,6 +11697,14 @@
           "$ref": "#/components/schemas/sortDirection"
         }
       },
+      "videoSearchSortField": {
+        "name": "sortField",
+        "description": "If provided, query results are sorted based on field(duration, laswViewed, ownerName, title, uploaderName, viewCount, whenUploaded, _score). Default is set to the account default sort field.",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/videoSearchSortField"
+        }
+      },
       "auditAccountId": {
         "name": "accountId",
         "in": "path",
@@ -12302,7 +12525,7 @@
           },
           "noEmail": {
             "type": "boolean",
-            "description": "Send email to each address notifying them of external access. default=false",
+            "description": "Disable sending email to each address notifying them of external access. default=false",
             "nullable": true,
             "default": false
           }
@@ -12321,11 +12544,16 @@
           },
           "status": {
             "type": "string",
-            "description": "Current status of the token."
+            "description": "Current status of the token.",
+            "enum": [
+              "Active",
+              "Revoked",
+              "Expired"
+            ]
           },
           "grantor": {
             "type": "string",
-            "description": "who generated this token"
+            "description": "Username of user that generated this token"
           },
           "validUntil": {
             "type": "string",
@@ -12394,7 +12622,7 @@
           },
           "noEmail": {
             "type": "boolean",
-            "description": "Send email to each address notifying them of external access. default=false",
+            "description": "Disable sending email to each address notifying them of external access. default=false",
             "nullable": true,
             "default": false
           }
@@ -12403,7 +12631,7 @@
       "renewExternalAccessResponse": {
         "type": "object",
         "properties": {
-          "InvalidEmails": {
+          "invalidEmails": {
             "type": "array",
             "description": "Email that external access could not be renewed for.",
             "items": {
@@ -12586,6 +12814,9 @@
             "type": "string"
           },
           "viewingEndTime": {
+            "type": "string"
+          },
+          "userId": {
             "type": "string"
           }
         }
@@ -15073,7 +15304,7 @@
           "producerBgImages": {
             "type": "array",
             "description": "This is available only for producer webcasts.",
-            "items":{
+            "items": {
               "$ref": "#/components/schemas/producerBgImage"
             },
             "nullable": true
@@ -15894,7 +16125,7 @@
           }
         }
       },
-      "producerBgImage":{
+      "producerBgImage": {
         "type": "object",
         "properties": {
           "imageId": {
@@ -17585,7 +17816,7 @@
           },
           "roleType": {
             "type": "string",
-            "enum":[
+            "enum": [
               "AccountAdmin",
               "MediaAdmin",
               "EventAdmin",
@@ -18011,7 +18242,7 @@
             "description": "Default=true. This enables or disables comments for the uploaded video.",
             "default": true
           },
-          "legacyViewCount":{
+          "legacyViewCount": {
             "type": "integer",
             "description": "Retain the total views count from an outside system as an optional param."
           },
@@ -18475,15 +18706,19 @@
       },
       "ipAddressRange": {
         "type": "object",
-        "description": "A range of Ip addresses",
+        "description": "A range of IP addresses, formatted as START-END IP addresses or by CIDR.",
         "properties": {
           "start": {
             "type": "string",
-            "description": "Starting Ip address for the range"
+            "description": "Starting IP address for the range. Leave blank if the range is represented by CIDR."
           },
           "end": {
             "type": "string",
-            "description": "Ending Ip address for the range"
+            "description": "Ending IP address for the range. Leave blank if the range is represented by CIDR."
+          },
+          "cidr": {
+            "type": "string",
+            "description": "CIDR representation of the range. Leave blank if the range is represented by start/end."
           }
         }
       },
@@ -18638,21 +18873,29 @@
       },
       "playlistRequest": {
         "type": "object",
+        "description": "Playlists can be either static or dynamic. Static playlists require videoIds, dynamic playlists require playlistDetails.",
         "required": [
           "name",
-          "videoIds"
+          "playlistType"
         ],
         "properties": {
           "name": {
             "type": "string",
             "description": "Name of the playlist. Must be unique."
           },
+          "playlistType": {
+            "$ref": "#/components/schemas/playlistType"
+          },
           "videoIds": {
-            "description": "Ids of videos to add to playlist. At least one video is required.",
+            "description": "Ids of videos to add to playlist. At least one video is required for static playlists.",
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "playlistDetails": {
+            "description": "Playlist details are required for dynamic playlists",
+            "$ref": "#/components/schemas/videoSearchRequest"
           }
         }
       },
@@ -18666,6 +18909,22 @@
       },
       "editPlaylistRequest": {
         "type": "object",
+        "description": "Either playlistVideoDetails or playlistDetails must be specified depending on the playlistType",
+        "properties": {
+          "playlistVideoDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/editPlaylistVideos"
+            }
+          },
+          "playlistDetails": {
+            "$ref": "#/components/schemas/videoSearchRequest"
+          }
+        }
+      },
+      "editFeaturedPlaylistRequest": {
+        "type": "object",
+        "description": "PlaylistVideoDetails must be specified",
         "properties": {
           "playlistVideoDetails": {
             "type": "array",
@@ -18718,6 +18977,9 @@
           "name": {
             "type": "string"
           },
+          "playlistType": {
+            "$ref": "#/components/schemas/playlistType"
+          },
           "playbackUrl": {
             "type": "string"
           },
@@ -18726,6 +18988,179 @@
             "items": {
               "$ref": "#/components/schemas/playlistVideoItem"
             }
+          },
+          "playlistDetails": {
+            "$ref": "#/components/schemas/videoSearchRequest"
+          }
+        }
+      },
+      "playlistType": {
+        "type": "string",
+        "enum": [
+          "Static",
+          "Dynamic"
+        ]
+      },
+      "whenUploaded": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "videoSearchSortField": {
+        "type": "string",
+        "enum": [
+         "duration",
+         "lastViewed",
+         "ownerName",
+         "title",
+         "uploaderName",
+         "viewCount",
+         "whenUploaded",
+         "_score"
+        ],
+        "default": "title"
+      },
+      "videoSearchRequest": {
+        "type": "object",
+        "description": "Criteria for searching for videos.  This field is required when creating a dynamic playlist",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/videoSearchSortField"
+          },
+          "sortDirection": {
+            "$ref": "#/components/schemas/sortDirection"
+          },
+          "q": {
+            "description": "Search string",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "fromUploadDate": {
+            "description": "Valid video upload date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "toUploadDate": {
+            "description": "Valid video upload date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "ownerIds": {
+            "description": "Owner GUIDs to get specific videos owned by these users. Example: <code>OwnerIds=[\"abc\", \"xyz\"]</code>",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uploaderIds": {
+            "description": "Uploader GUIDs to get specific videos uploaded by these users. Example: <code>UploaderIds=[\"abc\", \"xyz\"]</code>",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "description": "Status of video (Active/Inactive)",
+            "$ref": "#/components/schemas/videoActiveStatus"
+          },
+          "type": {
+            "description": "Type of video (Live/Vod)",
+            "type": "string",
+            "enum": [
+              "live",
+              "vod"
+            ]
+          },
+          "is360": {
+            "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categories": {
+            "description": "List of Category Ids to specify searching videos only in those categories.<p>Example: <code>Categories=a0e5cbf6-95cb-46e7-8600-4c07bc31f80b, b1f5cbf6-95cb-46e7-8600-4c07bc31g9pc.</code></p><p> Pass a blank entry to return uncategorized videos. Example: <code>Categories=</code></p>",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "channels": {
+            "description": "If channelIds are provided, videos in that particular channel are returned. User should have rights to the channel.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unlisted": {
+            "description": "If provided, the query string fetches the unlisted setting of the video. This can be listed only, unlisted only, or to return all. Default setting fetches the listed only videos.",
+            "type": "string",
+            "enum": [
+              "listed",
+              "unlisted",
+              "all"
+            ]
+          },
+          "count": {
+            "description": "Number of videos to get. (By default count is 50)",
+            "type": "integer"
+          },
+          "scrollId": {
+            "description": "If totalVideos > count, then provide the scrollId returned from the first request to get the next set of videos like (<code>scrollId=abc</code>)",
+            "type": "string"
+          }
+        }
+      },
+      "playlistDetails": {
+        "type": "object",
+        "properties": {
+          "playlistId": {
+            "type": "string"
+          },
+          "playlistType": {
+            "$ref": "#/components/schemas/playlistType"
+          },
+          "playlistDetails": {
+            "$ref": "#/components/schemas/videoSearchRequest"
+          },
+          "videos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/videoDetails"
+            }
+          },
+          "totalVideos": {
+            "type": "integer"
+          },
+          "scrollId": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "string"
+          },
+          "statusDescription": {
+            "type": "string"
           }
         }
       },
@@ -19492,6 +19927,29 @@
           }
         }
       },
+	  "videoReportRequest": {
+		"type": "object",
+		"properties": {
+		  "after": {
+			"type": "string",
+			"format": "date-time",
+			"description": "If after date is used, only video views with a start date <em>after</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
+		  },
+		  "before": {
+			"type": "string",
+			"format": "date-time",
+			"description": "If before date is used, only video views with a start date <em>before</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
+		  },
+		  "scrollId": {
+			"type": "string",
+			"description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once. Use the scrollId from previous call to get the next set of results."
+		  },
+		  "userId": {
+			"type": "string",
+			"description": "To get video session for a particular user, userId of the user can be speficied in the request."
+		  }
+		}
+	  },
       "videosReportRequest": {
         "type": "object",
         "properties": {
