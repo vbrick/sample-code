@@ -798,7 +798,7 @@
         ],
         "summary": "Update Video Details/Metadata",
         "description": "This endpoint is used to set or modify all metadata fields for a specific video. Note that if you are only changing one field (categories for example) <em>all</em> other metadata fields must also be submitted with this API call. Otherwise, those values that are not set are reset to defaults or nullified entirely.<p>To edit specific fields instead of all fields, use the <a href=/reference/migratevideo>Migrate Video</a> and/or <a href=/reference/editvideoaccesscontrol>Edit Video Access Control</a> endpoints instead.</p>",
-        "operationId": "editVideo",
+        "operationId": "updateVideo",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -1550,6 +1550,88 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/v2/videos/{videoId}/generate-metadata": {
+      "put": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Generate Video Metadata",
+        "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (title/tag/description) or specify <strong>all</strong> to generate all of the fields for the video. The feature must also be enabled for your Rev account.",
+        "operationId": "generateVideoMetadata",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of the video.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "List of fields for which to generate metadata, valid options are description, title, and tags. Use All to generate all fields.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/aiGeneratedMetadataFieldsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/v2/videos/{videoId}/metadata-generation-status": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Metadata Generation Status",
+        "description": "Returns the status of AI metadata generation for a specified video.",
+        "operationId": "getMetadataGenerationStatus",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of the video to get status of.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/aiMetadataGenerationStatus"
                 }
               }
             }
@@ -3058,9 +3140,17 @@
           {
             "name": "exactMatch",
             "in": "query",
-            "description": "If true, search is performed as exact match on title, tags, categories, and uploader.",
+            "description": "If true, search is performed as exact match on title, tags, categories, custom field values and uploader.",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "videoIds",
+            "in": "query",
+            "description": "Comma separated list of videoIds to search for.",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -4683,7 +4773,7 @@
         }
       }
     },
-	"/api/v2/videos/{videoId}/report": {
+    "/api/v2/videos/{videoId}/report": {
       "post": {
         "tags": [
           "Videos"
@@ -4938,7 +5028,7 @@
         "tags": [
           "Playlists"
         ],
-        "summary": "Get Playlist with Video Details",
+        "summary": "Get Playlist Information with Video Details",
         "description": "Returns a specified playlist and includes all the videos that are part of the playlist. It also returns the playlist type (static or dynamic), the video count, playback URL, and details of the search query if it is a dynamic playlist. You must have access to the playlist or an error is returned.",
         "operationId": "getPlaylistDetails",
         "parameters": [
@@ -10199,47 +10289,6 @@
           }
         }
       },
-      "put": {
-        "tags": [
-          "Administration"
-        ],
-        "x-sdk-tags": [
-          "Guest Registration"
-        ],
-        "summary": "Update Webcast Registration Field",
-        "description": "Edit webcast registration fields used in Public webcasts.",
-        "operationId": "editWebcastRegistrationField",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/authorizationParam"
-          }
-        ],
-        "requestBody": {
-          "description": "This contains the details required to modify a webcast registration field",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/registrationField"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response.",
-            "content": {}
-          },
-          "401": {
-            "description": "Unauthorized error",
-            "content": {}
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {}
-          }
-        }
-      },
       "post": {
         "tags": [
           "Administration"
@@ -10290,6 +10339,56 @@
       }
     },
     "/api/v2/accounts/webcast-registration-fields/{fieldId}": {
+      "put": {
+        "tags": [
+          "Administration"
+        ],
+        "x-sdk-tags": [
+          "Guest Registration"
+        ],
+        "summary": "Update Webcast Registration Field",
+        "description": "Edit webcast registration field used in Public webcasts.",
+        "operationId": "editWebcastRegistrationField",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Id of the field to update",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "This contains the details required to modify a webcast registration field",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/registrationField"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Administration"
@@ -12157,6 +12256,12 @@
           "duration": {
             "type": "string"
           },
+          "audioTracks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/audioTrack"
+            }
+          },
           "instances": {
             "type": "array",
             "items": {
@@ -12204,6 +12309,37 @@
           },
           "viewerIdEnabled": {
             "type": "boolean"
+          }
+        }
+      },
+      "audioTrack": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "integer"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "languageId": {
+            "type": "string"
+          },
+          "languageName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/transcriptionStatus"
+          }
+        }
+      },
+      "apiAudioTrack": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "integer"
+          },
+          "languageId": {
+            "type": "string"
           }
         }
       },
@@ -12463,6 +12599,13 @@
           },
           "videoAccessControl": {
             "$ref": "#/components/schemas/videoAccessControl"
+          },
+          "audioTracks": {
+            "type": "array",
+            "description": "Audio tracks to change. All existing audio tracks are required.",
+            "items": {
+              "$ref": "#/components/schemas/apiAudioTrack"
+            }
           },
           "accessControlEntities": {
             "type": "array",
@@ -13354,6 +13497,45 @@
           }
         }
       },
+      "aiGeneratedMetadataFieldsRequest": {
+        "type": "object",
+        "properties": {
+          "metadataGenerationFields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "description",
+                "title",
+                "tags",
+                "all"
+              ]
+            }
+          }
+        }
+      },
+      "aiMetadataGenerationStatus": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/aiGeneratedFieldStatus"
+          }
+        }
+      },
+      "aiGeneratedFieldStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NotStarted",
+              "InProgress",
+              "Success",
+              "Failed"
+            ]
+          }
+        }
+      },
       "videoRatingRequest": {
         "required": [
           "rating"
@@ -13428,6 +13610,10 @@
       "transcriptionRequest": {
         "type": "object",
         "properties": {
+          "audioTrack": {
+            "type": "integer",
+            "description": "The audio track to transcribe. If the video has multiple audio tracks, you can specify which one to transcribe. Default is null, which means the default audio track is transcribed."
+          },
           "language": {
             "type": "string",
             "description": "View the latest <a href=/docs/supported-languages>Supported Languages</a> in Rev technical requirements.",
@@ -18873,7 +19059,7 @@
       },
       "playlistRequest": {
         "type": "object",
-        "description": "Playlists can be either static or dynamic. Static playlists require videoIds, dynamic playlists require playlistDetails.",
+        "description": "Playlists can be either static or dynamic. Static playlists require videoIds, dynamic playlists require searchFilter.",
         "required": [
           "name",
           "playlistType"
@@ -18893,8 +19079,8 @@
               "type": "string"
             }
           },
-          "playlistDetails": {
-            "description": "Playlist details are required for dynamic playlists",
+          "searchFilter": {
+            "description": "Playlist searchfilter is required for dynamic playlists",
             "$ref": "#/components/schemas/videoSearchRequest"
           }
         }
@@ -18909,7 +19095,7 @@
       },
       "editPlaylistRequest": {
         "type": "object",
-        "description": "Either playlistVideoDetails or playlistDetails must be specified depending on the playlistType",
+        "description": "Either playlistVideoDetails or searchFilter must be specified depending on the playlistType",
         "properties": {
           "playlistVideoDetails": {
             "type": "array",
@@ -18917,7 +19103,7 @@
               "$ref": "#/components/schemas/editPlaylistVideos"
             }
           },
-          "playlistDetails": {
+          "searchFilter": {
             "$ref": "#/components/schemas/videoSearchRequest"
           }
         }
@@ -18985,11 +19171,12 @@
           },
           "videos": {
             "type": "array",
+            "description": "A list of the videos in a static playlist.  Videos are not provided for dynamic playlists.",
             "items": {
               "$ref": "#/components/schemas/playlistVideoItem"
             }
           },
-          "playlistDetails": {
+          "searchFilter": {
             "$ref": "#/components/schemas/videoSearchRequest"
           }
         }
@@ -19017,14 +19204,14 @@
       "videoSearchSortField": {
         "type": "string",
         "enum": [
-         "duration",
-         "lastViewed",
-         "ownerName",
-         "title",
-         "uploaderName",
-         "viewCount",
-         "whenUploaded",
-         "_score"
+          "duration",
+          "lastViewed",
+          "ownerName",
+          "title",
+          "uploaderName",
+          "viewCount",
+          "whenUploaded",
+          "_score"
         ],
         "default": "title"
       },
@@ -19138,10 +19325,17 @@
           "playlistId": {
             "type": "string"
           },
+          "name": {
+            "type": "string"
+          },
+          "playbackUrl": {
+            "type": "string"
+          },
           "playlistType": {
             "$ref": "#/components/schemas/playlistType"
           },
-          "playlistDetails": {
+          "searchFilter": {
+            "description": "Search filter applies to Dynamic playlists only",
             "$ref": "#/components/schemas/videoSearchRequest"
           },
           "videos": {
@@ -19927,29 +20121,29 @@
           }
         }
       },
-	  "videoReportRequest": {
-		"type": "object",
-		"properties": {
-		  "after": {
-			"type": "string",
-			"format": "date-time",
-			"description": "If after date is used, only video views with a start date <em>after</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
-		  },
-		  "before": {
-			"type": "string",
-			"format": "date-time",
-			"description": "If before date is used, only video views with a start date <em>before</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
-		  },
-		  "scrollId": {
-			"type": "string",
-			"description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once. Use the scrollId from previous call to get the next set of results."
-		  },
-		  "userId": {
-			"type": "string",
-			"description": "To get video session for a particular user, userId of the user can be speficied in the request."
-		  }
-		}
-	  },
+      "videoReportRequest": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If after date is used, only video views with a start date <em>after</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
+          },
+          "before": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If before date is used, only video views with a start date <em>before</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
+          },
+          "scrollId": {
+            "type": "string",
+            "description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once. Use the scrollId from previous call to get the next set of results."
+          },
+          "userId": {
+            "type": "string",
+            "description": "To get video session for a particular user, userId of the user can be speficied in the request."
+          }
+        }
+      },
       "videosReportRequest": {
         "type": "object",
         "properties": {
