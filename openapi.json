@@ -798,7 +798,7 @@
         ],
         "summary": "Update Video Details/Metadata",
         "description": "This endpoint is used to set or modify all metadata fields for a specific video. Note that if you are only changing one field (categories for example) <em>all</em> other metadata fields must also be submitted with this API call. Otherwise, those values that are not set are reset to defaults or nullified entirely.<p>To edit specific fields instead of all fields, use the <a href=/reference/migratevideo>Migrate Video</a> and/or <a href=/reference/editvideoaccesscontrol>Edit Video Access Control</a> endpoints instead.</p>",
-        "operationId": "editVideo",
+        "operationId": "updateVideo",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -992,13 +992,67 @@
         "x-codegen-request-body-name": "accessControlSettings"
       }
     },
+    "/api/v2/videos/{videoId}/edit": {
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Edit a Video",
+        "description": "This endpoint allows you to edit and replace a video based on a list of supplied clips.  Each clip (an object within clips) defines start and end times within the video. The end result is a new video concatenating the clips (from the original video). This endpoint replaces the <a href=/reference/trimvideo>trim video</a> API which is now deprecated as a result.</br>",
+        "operationId": "editVideo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to edit",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "edit video request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/videoEditRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/videos/{videoId}/trim": {
       "post": {
         "tags": [
           "Videos"
         ],
-        "summary": "Trim a Video",
-        "description": "This endpoint allows you to trim videos that are hosted in Rev.",
+        "deprecated": true,
+        "summary": "Trim a Video (Deprecated)",
+        "description": "This endpoint allows you to trim videos that are hosted in Rev. This endpoint is deprecated. Use the <a href=/reference/editvideo>edit a video</a> API instead.",
         "operationId": "trimVideo",
         "parameters": [
           {
@@ -1550,6 +1604,88 @@
                 "schema": {
                   "type": "string",
                   "format": "binary"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/v2/videos/{videoId}/generate-metadata": {
+      "put": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Generate Video Metadata",
+        "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (description/title/tags/chapters) or specify <strong>all</strong> to generate all of the fields for the video. The feature must also be enabled for your Rev account.",
+        "operationId": "generateVideoMetadata",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of the video.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "List of fields for which to generate metadata, valid options are description, title, tags, and chapters. Use All to generate all fields.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/aiGeneratedMetadataFieldsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/v2/videos/{videoId}/metadata-generation-status": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Metadata Generation Status",
+        "description": "Returns the status of AI metadata generation for a specified video.",
+        "operationId": "getMetadataGenerationStatus",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of the video to get status of.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/aiMetadataGenerationStatus"
                 }
               }
             }
@@ -2854,6 +2990,44 @@
         }
       }
     },
+    "/api/v2/videos/{videoId}/convert-dual-streams-to-switched-stream": {
+      "put": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Convert Dual Stream to Switched (Single) Stream",
+        "description": "Converts a dual-stream video to a switched-stream (single) video. This endpoint only works for dual stream videos. <p>When you run this API, the MP4 switched-stream version is marked as the original and the HLS switched-stream version remains.</p><p>The HLS dual-stream version is deleted.</p><p>The <strong>hasDualStreams</strong> and <strong>isConvertedToSwitched</strong> parameters are updated accordingly in the <a href=/reference/getvideosdetails>Get Video Details/Metadata</a> and <a href=/reference/searchvideo>Search Video</a> endpoints.</p>",
+        "operationId": "convertDualStreamToSwitchedStream",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to convert",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/videos/search": {
       "get": {
         "tags": [
@@ -3020,26 +3194,21 @@
           {
             "name": "exactMatch",
             "in": "query",
-            "description": "If true, search is performed as exact match on title, tags, categories, and uploader.",
+            "description": "If true, search is performed as exact match on title, tags, categories, custom field values and uploader.",
             "schema": {
               "type": "boolean"
             }
           },
           {
-            "name": "sortField",
+            "name": "videoIds",
             "in": "query",
-            "description": "If provided, query results are sorted based on field(title, whenUploaded, uploaderName, duration, _score). Default is set to title.",
+            "description": "Comma separated list of videoIds to search for.",
             "schema": {
-              "type": "string",
-              "enum": [
-                "title",
-                "whenUploaded",
-                "uploaderName",
-                "duration",
-                "_score"
-              ],
-              "default": "title"
+              "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/videoSearchSortField"
           },
           {
             "$ref": "#/components/parameters/sortDirection"
@@ -4658,6 +4827,63 @@
         }
       }
     },
+    "/api/v2/videos/{videoId}/report": {
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Unique Sessions Report",
+        "description": "This endpoint returns detailed viewing information for a video. It is limited to one session per user within a given time range. It reports the individual viewing session with the maximum viewing time for each user who watched the video, and whether or not each user completed the video. Up to 500 responses can be generated with supported scrolling. Guest user sessions are only reported for authenticated guests.",
+        "operationId": "uniqueVideoSessionsReport",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to get report for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/videoReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/videoReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/videos/{videoId}/users/{userId}/status": {
       "get": {
         "tags": [
@@ -4852,6 +5078,68 @@
       }
     },
     "/api/v2/playlists/{playlistId}": {
+      "get": {
+        "tags": [
+          "Playlists"
+        ],
+        "summary": "Get Playlist Information with Video Details",
+        "description": "Returns a specified playlist and includes all the videos that are part of the playlist. It also returns the playlist type (static or dynamic), the video count, playback URL, and details of the search query if it is a dynamic playlist. You must have access to the playlist or an error is returned.",
+        "operationId": "getPlaylistDetails",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "playlistId",
+            "in": "path",
+            "description": "Id of the playlist to get details",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of videos to get. (By default count is 50)",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "scrollId",
+            "in": "query",
+            "description": "If totalVideos > count, then provide the scrollId returned from the first request to get the next set of videos like (<code>scrollId=abc</code>)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/playlistDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
       "put": {
         "tags": [
           "Playlists"
@@ -4959,7 +5247,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/editPlaylistRequest"
+                "$ref": "#/components/schemas/editFeaturedPlaylistRequest"
               }
             }
           },
@@ -5436,8 +5724,8 @@
         "x-codegen-request-body-name": "eventAccessControl"
       }
     },
-    "/api/v2/scheduled-events/{eventId}/is-public":
-    { "get": {
+    "/api/v2/scheduled-events/{eventId}/is-public": {
+      "get": {
         "tags": [
           "Webcasts"
         ],
@@ -5476,7 +5764,6 @@
         }
       }
     },
-
     "/api/v2/scheduled-events/delete-status/{jobId}": {
       "get": {
         "tags": [
@@ -8634,6 +8921,78 @@
         }
       }
     },
+    "/api/v2/search/access-entity/assignable": {
+      "get": {
+        "tags": [
+          "Users & Groups"
+        ],
+        "x-sdk-tags": [
+          "Users",
+          "Groups"
+        ],
+        "summary": "Search assignable Users, Groups and Channels",
+        "description": "Searches the specified access entity (user/group/channel) in Rev for a specified query string that the current user is able to assign. If no entity is specified, then all types are searched.",
+        "operationId": "searchAccessEntityAssignable",
+        "x-sdk-method-name": "search",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Type of access entity to search (user/group/channel). One or more may be provided. If no type is provided, all entities are included.",
+            "schema": {
+              "$ref": "#/components/schemas/accessEntityType"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search string. If no search string is provided, treated as a blank search. Example: If the group parameter is specified with no search string, the first 1000 groups are returned (count parameter default).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scrollId",
+            "in": "query",
+            "description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "Number of access entities to get. (By default count is 1000)",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/searchAccessEntitiesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/users/login-report": {
       "get": {
         "tags": [
@@ -9984,47 +10343,6 @@
           }
         }
       },
-      "put": {
-        "tags": [
-          "Administration"
-        ],
-        "x-sdk-tags": [
-          "Guest Registration"
-        ],
-        "summary": "Update Webcast Registration Field",
-        "description": "Edit webcast registration fields used in Public webcasts.",
-        "operationId": "editWebcastRegistrationField",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/authorizationParam"
-          }
-        ],
-        "requestBody": {
-          "description": "This contains the details required to modify a webcast registration field",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/registrationField"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful response.",
-            "content": {}
-          },
-          "401": {
-            "description": "Unauthorized error",
-            "content": {}
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {}
-          }
-        }
-      },
       "post": {
         "tags": [
           "Administration"
@@ -10075,6 +10393,56 @@
       }
     },
     "/api/v2/accounts/webcast-registration-fields/{fieldId}": {
+      "put": {
+        "tags": [
+          "Administration"
+        ],
+        "x-sdk-tags": [
+          "Guest Registration"
+        ],
+        "summary": "Update Webcast Registration Field",
+        "description": "Edit webcast registration field used in Public webcasts.",
+        "operationId": "editWebcastRegistrationField",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "description": "Id of the field to update",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "This contains the details required to modify a webcast registration field",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/registrationField"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Administration"
@@ -10205,7 +10573,7 @@
           "RevIQ"
         ],
         "summary": "Get Rev IQ Credits Usage",
-        "description": "Get Rev IQ credits usage. Data for video and live events is collected.",
+        "description": "Returns the Rev IQ credits usage. Data for both video and live events is collected. Rev IQ credits are used for transcription, translation, user tagging, and metadata generation.",
         "operationId": "getAccountIqCreditsUsage",
         "parameters": [
           {
@@ -11482,6 +11850,14 @@
           "$ref": "#/components/schemas/sortDirection"
         }
       },
+      "videoSearchSortField": {
+        "name": "sortField",
+        "description": "If provided, query results are sorted based on field(duration, laswViewed, ownerName, title, uploaderName, viewCount, whenUploaded, _score). Default is set to the account default sort field.",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/videoSearchSortField"
+        }
+      },
       "auditAccountId": {
         "name": "accountId",
         "in": "path",
@@ -11934,6 +12310,12 @@
           "duration": {
             "type": "string"
           },
+          "audioTracks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/audioTrack"
+            }
+          },
           "instances": {
             "type": "array",
             "items": {
@@ -11981,6 +12363,37 @@
           },
           "viewerIdEnabled": {
             "type": "boolean"
+          }
+        }
+      },
+      "audioTrack": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "integer"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "languageId": {
+            "type": "string"
+          },
+          "languageName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/transcriptionStatus"
+          }
+        }
+      },
+      "apiAudioTrack": {
+        "type": "object",
+        "properties": {
+          "track": {
+            "type": "integer"
+          },
+          "languageId": {
+            "type": "string"
           }
         }
       },
@@ -12241,6 +12654,13 @@
           "videoAccessControl": {
             "$ref": "#/components/schemas/videoAccessControl"
           },
+          "audioTracks": {
+            "type": "array",
+            "description": "Audio tracks to change. All existing audio tracks are required.",
+            "items": {
+              "$ref": "#/components/schemas/apiAudioTrack"
+            }
+          },
           "accessControlEntities": {
             "type": "array",
             "items": {
@@ -12302,7 +12722,7 @@
           },
           "noEmail": {
             "type": "boolean",
-            "description": "Send email to each address notifying them of external access. default=false",
+            "description": "Disable sending email to each address notifying them of external access. default=false",
             "nullable": true,
             "default": false
           }
@@ -12321,11 +12741,16 @@
           },
           "status": {
             "type": "string",
-            "description": "Current status of the token."
+            "description": "Current status of the token.",
+            "enum": [
+              "Active",
+              "Revoked",
+              "Expired"
+            ]
           },
           "grantor": {
             "type": "string",
-            "description": "who generated this token"
+            "description": "Username of user that generated this token"
           },
           "validUntil": {
             "type": "string",
@@ -12394,7 +12819,7 @@
           },
           "noEmail": {
             "type": "boolean",
-            "description": "Send email to each address notifying them of external access. default=false",
+            "description": "Disable sending email to each address notifying them of external access. default=false",
             "nullable": true,
             "default": false
           }
@@ -12403,7 +12828,7 @@
       "renewExternalAccessResponse": {
         "type": "object",
         "properties": {
-          "InvalidEmails": {
+          "invalidEmails": {
             "type": "array",
             "description": "Email that external access could not be renewed for.",
             "items": {
@@ -12586,6 +13011,9 @@
             "type": "string"
           },
           "viewingEndTime": {
+            "type": "string"
+          },
+          "userId": {
             "type": "string"
           }
         }
@@ -13123,6 +13551,46 @@
           }
         }
       },
+      "aiGeneratedMetadataFieldsRequest": {
+        "type": "object",
+        "properties": {
+          "metadataGenerationFields": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "description",
+                "title",
+                "tags",
+                "chapters",
+                "all"
+              ]
+            }
+          }
+        }
+      },
+      "aiMetadataGenerationStatus": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/aiGeneratedFieldStatus"
+          }
+        }
+      },
+      "aiGeneratedFieldStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NotStarted",
+              "InProgress",
+              "Success",
+              "Failed"
+            ]
+          }
+        }
+      },
       "videoRatingRequest": {
         "required": [
           "rating"
@@ -13197,6 +13665,10 @@
       "transcriptionRequest": {
         "type": "object",
         "properties": {
+          "audioTrack": {
+            "type": "integer",
+            "description": "The audio track to transcribe. If the video has multiple audio tracks, you can specify which one to transcribe. Default is null, which means the default audio track is transcribed."
+          },
           "language": {
             "type": "string",
             "description": "View the latest <a href=/docs/supported-languages>Supported Languages</a> in Rev technical requirements.",
@@ -15073,7 +15545,7 @@
           "producerBgImages": {
             "type": "array",
             "description": "This is available only for producer webcasts.",
-            "items":{
+            "items": {
               "$ref": "#/components/schemas/producerBgImage"
             },
             "nullable": true
@@ -15894,7 +16366,7 @@
           }
         }
       },
-      "producerBgImage":{
+      "producerBgImage": {
         "type": "object",
         "properties": {
           "imageId": {
@@ -16041,8 +16513,33 @@
           }
         }
       },
+      "videoEditRequest": {
+        "type": "object",
+        "properties": {
+          "clips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/videoClip"
+            }
+          }
+        }
+      },
+      "videoClip": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time of the video clip in timespan format (e.g. <code>00:00:00</code>). Minutes and seconds should be from 0-59."
+          },
+          "end": {
+            "type": "string",
+            "description": "End time of the video clip in timespan format (e.g. <code>00:00:00</code>). Minutes and seconds should be from 0-59."
+          }
+        }
+      },
       "videoTrimRequest": {
         "type": "object",
+        "description": "DEPRECATED",
         "properties": {
           "removedSegments": {
             "type": "array",
@@ -16054,6 +16551,7 @@
       },
       "videoTrimRange": {
         "type": "object",
+        "description": "DEPRECATED",
         "properties": {
           "start": {
             "type": "string",
@@ -17585,7 +18083,7 @@
           },
           "roleType": {
             "type": "string",
-            "enum":[
+            "enum": [
               "AccountAdmin",
               "MediaAdmin",
               "EventAdmin",
@@ -18011,7 +18509,7 @@
             "description": "Default=true. This enables or disables comments for the uploaded video.",
             "default": true
           },
-          "legacyViewCount":{
+          "legacyViewCount": {
             "type": "integer",
             "description": "Retain the total views count from an outside system as an optional param."
           },
@@ -18242,6 +18740,10 @@
             "type": "boolean",
             "description": "Specify if the zone supports multicast streams"
           },
+          "fallbackToSource": {
+            "type": "boolean",
+            "description": "Allow viewers, if distribution modalities fail, to fallback to Source (if available) for unicast playback."
+          },
           "ipAddresses": {
             "type": "array",
             "description": "Individual Ip addresses added to the zone",
@@ -18318,6 +18820,9 @@
           "supportsMulticast": {
             "type": "boolean"
           },
+          "fallbackToSource": {
+            "type": "boolean"
+          },
           "slideDelay": {
             "$ref": "#/components/schemas/zoneSlideDelay"
           },
@@ -18369,6 +18874,9 @@
             }
           },
           "supportsMulticast": {
+            "type": "boolean"
+          },
+          "fallbackToSource": {
             "type": "boolean"
           },
           "slideDelay": {
@@ -18439,6 +18947,9 @@
           "supportsMulticast": {
             "type": "boolean"
           },
+          "fallbackToSource": {
+            "type": "boolean"
+          },
           "slideDelay": {
             "$ref": "#/components/schemas/zoneSlideDelay"
           },
@@ -18475,15 +18986,19 @@
       },
       "ipAddressRange": {
         "type": "object",
-        "description": "A range of Ip addresses",
+        "description": "A range of IP addresses, formatted as START-END IP addresses or by CIDR.",
         "properties": {
           "start": {
             "type": "string",
-            "description": "Starting Ip address for the range"
+            "description": "Starting IP address for the range. Leave blank if the range is represented by CIDR."
           },
           "end": {
             "type": "string",
-            "description": "Ending Ip address for the range"
+            "description": "Ending IP address for the range. Leave blank if the range is represented by CIDR."
+          },
+          "cidr": {
+            "type": "string",
+            "description": "CIDR representation of the range. Leave blank if the range is represented by start/end."
           }
         }
       },
@@ -18638,21 +19153,29 @@
       },
       "playlistRequest": {
         "type": "object",
+        "description": "Playlists can be either static or dynamic. Static playlists require videoIds, dynamic playlists require searchFilter.",
         "required": [
           "name",
-          "videoIds"
+          "playlistType"
         ],
         "properties": {
           "name": {
             "type": "string",
             "description": "Name of the playlist. Must be unique."
           },
+          "playlistType": {
+            "$ref": "#/components/schemas/playlistType"
+          },
           "videoIds": {
-            "description": "Ids of videos to add to playlist. At least one video is required.",
+            "description": "Ids of videos to add to playlist. At least one video is required for static playlists.",
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "searchFilter": {
+            "description": "Playlist searchfilter is required for dynamic playlists",
+            "$ref": "#/components/schemas/videoSearchRequest"
           }
         }
       },
@@ -18666,6 +19189,22 @@
       },
       "editPlaylistRequest": {
         "type": "object",
+        "description": "Either playlistVideoDetails or searchFilter must be specified depending on the playlistType",
+        "properties": {
+          "playlistVideoDetails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/editPlaylistVideos"
+            }
+          },
+          "searchFilter": {
+            "$ref": "#/components/schemas/videoSearchRequest"
+          }
+        }
+      },
+      "editFeaturedPlaylistRequest": {
+        "type": "object",
+        "description": "PlaylistVideoDetails must be specified",
         "properties": {
           "playlistVideoDetails": {
             "type": "array",
@@ -18718,14 +19257,198 @@
           "name": {
             "type": "string"
           },
+          "playlistType": {
+            "$ref": "#/components/schemas/playlistType"
+          },
           "playbackUrl": {
             "type": "string"
           },
           "videos": {
             "type": "array",
+            "description": "A list of the videos in a static playlist.  Videos are not provided for dynamic playlists.",
             "items": {
               "$ref": "#/components/schemas/playlistVideoItem"
             }
+          },
+          "searchFilter": {
+            "$ref": "#/components/schemas/videoSearchRequest"
+          }
+        }
+      },
+      "playlistType": {
+        "type": "string",
+        "enum": [
+          "Static",
+          "Dynamic"
+        ]
+      },
+      "whenUploaded": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "videoSearchSortField": {
+        "type": "string",
+        "enum": [
+          "duration",
+          "lastViewed",
+          "ownerName",
+          "title",
+          "uploaderName",
+          "viewCount",
+          "whenUploaded",
+          "_score"
+        ],
+        "default": "title"
+      },
+      "videoSearchRequest": {
+        "type": "object",
+        "description": "Criteria for searching for videos.  This field is required when creating a dynamic playlist",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/videoSearchSortField"
+          },
+          "sortDirection": {
+            "$ref": "#/components/schemas/sortDirection"
+          },
+          "q": {
+            "description": "Search string",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "fromUploadDate": {
+            "description": "Valid video upload date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "toUploadDate": {
+            "description": "Valid video upload date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "ownerIds": {
+            "description": "Owner GUIDs to get specific videos owned by these users. Example: <code>OwnerIds=[\"abc\", \"xyz\"]</code>",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uploaderIds": {
+            "description": "Uploader GUIDs to get specific videos uploaded by these users. Example: <code>UploaderIds=[\"abc\", \"xyz\"]</code>",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "description": "Status of video (Active/Inactive)",
+            "$ref": "#/components/schemas/videoActiveStatus"
+          },
+          "type": {
+            "description": "Type of video (Live/Vod)",
+            "type": "string",
+            "enum": [
+              "live",
+              "vod"
+            ]
+          },
+          "is360": {
+            "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "categories": {
+            "description": "List of Category Ids to specify searching videos only in those categories.<p>Example: <code>Categories=a0e5cbf6-95cb-46e7-8600-4c07bc31f80b, b1f5cbf6-95cb-46e7-8600-4c07bc31g9pc.</code></p><p> Pass a blank entry to return uncategorized videos. Example: <code>Categories=</code></p>",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "channels": {
+            "description": "If channelIds are provided, videos in that particular channel are returned. User should have rights to the channel.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unlisted": {
+            "description": "If provided, the query string fetches the unlisted setting of the video. This can be listed only, unlisted only, or to return all. Default setting fetches the listed only videos.",
+            "type": "string",
+            "enum": [
+              "listed",
+              "unlisted",
+              "all"
+            ]
+          },
+          "count": {
+            "description": "Number of videos to get. (By default count is 50)",
+            "type": "integer"
+          },
+          "scrollId": {
+            "description": "If totalVideos > count, then provide the scrollId returned from the first request to get the next set of videos like (<code>scrollId=abc</code>)",
+            "type": "string"
+          }
+        }
+      },
+      "playlistDetails": {
+        "type": "object",
+        "properties": {
+          "playlistId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "playbackUrl": {
+            "type": "string"
+          },
+          "playlistType": {
+            "$ref": "#/components/schemas/playlistType"
+          },
+          "searchFilter": {
+            "description": "Search filter applies to Dynamic playlists only",
+            "$ref": "#/components/schemas/videoSearchRequest"
+          },
+          "videos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/videoDetails"
+            }
+          },
+          "totalVideos": {
+            "type": "integer"
+          },
+          "scrollId": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "string"
+          },
+          "statusDescription": {
+            "type": "string"
           }
         }
       },
@@ -18987,11 +19710,12 @@
                 },
                 "Usage": {
                   "type": "string",
-                  "description": "Type of transaction that initiated the IQ credits. Possible values: Transcription, Translation, UserTagging.",
+                  "description": "Type of transaction that initiated the IQ credits. Possible values: Transcription, Translation, UserTagging, MetadataGeneration.",
                   "enum": [
                     "Transcription",
                     "Translation",
-                    "UserTagging"
+                    "UserTagging",
+                    "MetadataGeneration"
                   ]
                 },
                 "Credits": {
@@ -19489,6 +20213,29 @@
         "properties": {
           "isPublic": {
             "type": "boolean"
+          }
+        }
+      },
+      "videoReportRequest": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If after date is used, only video views with a start date <em>after</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
+          },
+          "before": {
+            "type": "string",
+            "format": "date-time",
+            "description": "If before date is used, only video views with a start date <em>before</em> the specified date are included in the response. If <em>both</em> dates are used, video views between the specified dates are returned. If <em>no</em> dates are specified, all video views are returned up to a maximum of 500 sessions per call."
+          },
+          "scrollId": {
+            "type": "string",
+            "description": "The scrollId returned in first request to search. This can be passed in subsequent requests to fetch next set of results. This is forward only and you cannot get back the search results that are scrolled once. Use the scrollId from previous call to get the next set of results."
+          },
+          "userId": {
+            "type": "string",
+            "description": "To get video session for a particular user, userId of the user can be speficied in the request."
           }
         }
       },
