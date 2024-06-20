@@ -992,13 +992,67 @@
         "x-codegen-request-body-name": "accessControlSettings"
       }
     },
+    "/api/v2/videos/{videoId}/edit": {
+      "post": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Edit a Video",
+        "description": "This endpoint allows you to edit and replace a video based on a list of supplied clips.  Each clip (an object within clips) defines start and end times within the video. The end result is a new video concatenating the clips (from the original video). This endpoint replaces the <a href=/reference/trimvideo>trim video</a> API which is now deprecated as a result.</br>",
+        "operationId": "editVideo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video to edit",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "edit video request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/videoEditRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/videos/{videoId}/trim": {
       "post": {
         "tags": [
           "Videos"
         ],
-        "summary": "Trim a Video",
-        "description": "This endpoint allows you to trim videos that are hosted in Rev.",
+        "deprecated": true,
+        "summary": "Trim a Video (Deprecated)",
+        "description": "This endpoint allows you to trim videos that are hosted in Rev. This endpoint is deprecated. Use the <a href=/reference/editvideo>edit a video</a> API instead.",
         "operationId": "trimVideo",
         "parameters": [
           {
@@ -1566,7 +1620,7 @@
           "Videos"
         ],
         "summary": "Generate Video Metadata",
-        "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (title/tag/description) or specify <strong>all</strong> to generate all of the fields for the video. The feature must also be enabled for your Rev account.",
+        "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (description/title/tags/chapters) or specify <strong>all</strong> to generate all of the fields for the video. The feature must also be enabled for your Rev account.",
         "operationId": "generateVideoMetadata",
         "parameters": [
           {
@@ -1583,7 +1637,7 @@
           }
         ],
         "requestBody": {
-          "description": "List of fields for which to generate metadata, valid options are description, title, and tags. Use All to generate all fields.",
+          "description": "List of fields for which to generate metadata, valid options are description, title, tags, and chapters. Use All to generate all fields.",
           "content": {
             "application/json": {
               "schema": {
@@ -10519,7 +10573,7 @@
           "RevIQ"
         ],
         "summary": "Get Rev IQ Credits Usage",
-        "description": "Get Rev IQ credits usage. Data for video and live events is collected.",
+        "description": "Returns the Rev IQ credits usage. Data for both video and live events is collected. Rev IQ credits are used for transcription, translation, user tagging, and metadata generation.",
         "operationId": "getAccountIqCreditsUsage",
         "parameters": [
           {
@@ -13508,6 +13562,7 @@
                 "description",
                 "title",
                 "tags",
+                "chapters",
                 "all"
               ]
             }
@@ -16458,8 +16513,33 @@
           }
         }
       },
+      "videoEditRequest": {
+        "type": "object",
+        "properties": {
+          "clips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/videoClip"
+            }
+          }
+        }
+      },
+      "videoClip": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "description": "Start time of the video clip in timespan format (e.g. <code>00:00:00</code>). Minutes and seconds should be from 0-59."
+          },
+          "end": {
+            "type": "string",
+            "description": "End time of the video clip in timespan format (e.g. <code>00:00:00</code>). Minutes and seconds should be from 0-59."
+          }
+        }
+      },
       "videoTrimRequest": {
         "type": "object",
+        "description": "DEPRECATED",
         "properties": {
           "removedSegments": {
             "type": "array",
@@ -16471,6 +16551,7 @@
       },
       "videoTrimRange": {
         "type": "object",
+        "description": "DEPRECATED",
         "properties": {
           "start": {
             "type": "string",
@@ -18659,6 +18740,10 @@
             "type": "boolean",
             "description": "Specify if the zone supports multicast streams"
           },
+          "fallbackToSource": {
+            "type": "boolean",
+            "description": "Allow viewers, if distribution modalities fail, to fallback to Source (if available) for unicast playback."
+          },
           "ipAddresses": {
             "type": "array",
             "description": "Individual Ip addresses added to the zone",
@@ -18735,6 +18820,9 @@
           "supportsMulticast": {
             "type": "boolean"
           },
+          "fallbackToSource": {
+            "type": "boolean"
+          },
           "slideDelay": {
             "$ref": "#/components/schemas/zoneSlideDelay"
           },
@@ -18786,6 +18874,9 @@
             }
           },
           "supportsMulticast": {
+            "type": "boolean"
+          },
+          "fallbackToSource": {
             "type": "boolean"
           },
           "slideDelay": {
@@ -18854,6 +18945,9 @@
             }
           },
           "supportsMulticast": {
+            "type": "boolean"
+          },
+          "fallbackToSource": {
             "type": "boolean"
           },
           "slideDelay": {
@@ -19616,11 +19710,12 @@
                 },
                 "Usage": {
                   "type": "string",
-                  "description": "Type of transaction that initiated the IQ credits. Possible values: Transcription, Translation, UserTagging.",
+                  "description": "Type of transaction that initiated the IQ credits. Possible values: Transcription, Translation, UserTagging, MetadataGeneration.",
                   "enum": [
                     "Transcription",
                     "Translation",
-                    "UserTagging"
+                    "UserTagging",
+                    "MetadataGeneration"
                   ]
                 },
                 "Credits": {
