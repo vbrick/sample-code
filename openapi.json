@@ -797,7 +797,7 @@
           "Videos"
         ],
         "summary": "Update Video Details/Metadata",
-        "description": "This endpoint is used to set or modify all metadata fields for a specific video. Note that if you are only changing one field (categories for example) <em>all</em> other metadata fields must also be submitted with this API call. Otherwise, those values that are not set are reset to defaults or nullified entirely.<p>To edit specific fields instead of all fields, use the <a href=/reference/migratevideo>Migrate Video</a> and/or <a href=/reference/editvideoaccesscontrol>Edit Video Access Control</a> endpoints instead.</p>",
+        "description": "This endpoint is used to set or modify all metadata fields for a specific video. Note that if you are only changing one field (categories for example) <em>all</em> other metadata fields must also be submitted with this API call. Otherwise, those values that are not set are reset to defaults or nullified entirely.<p>To edit specific fields instead of all fields, use the <a href=/reference/editvideopatch>Patch Video Details/Metadata</a> endpoint instead.</p>",
         "operationId": "updateVideo",
         "parameters": [
           {
@@ -1620,7 +1620,7 @@
           "Videos"
         ],
         "summary": "Generate Video Metadata",
-        "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (description/title/tags/chapters) or specify <strong>all</strong> to generate all of the fields for the video. The feature must also be enabled for your Rev account.",
+        "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (description/title/tags/chapters) or specify <strong>all</strong> to generate all of the fields for the video. This feature requires English transcription and must also be enabled for your Rev account.",
         "operationId": "generateVideoMetadata",
         "parameters": [
           {
@@ -7588,8 +7588,9 @@
         "tags": [
           "Webcasts"
         ],
-        "summary": "Get Push Links for a Webcast",
-        "description": "Retrieves a list of <em>all</em> push links for a specific webcast.",
+        "deprecated": true,
+        "summary": "Get Push Links for a Webcast (Deprecated)",
+        "description": "This is a deprecated endpoint. Use <a href=/reference/getwebcastbanners>Get Banners for a Webcast</a> instead.",
         "operationId": "getWebcastPushContentLinks",
         "x-sdk-method-name": "getPushContentLinks",
         "parameters": [
@@ -7633,8 +7634,9 @@
         "tags": [
           "Webcasts"
         ],
-        "summary": "Add Push Links to a Webcast",
-        "description": "This API allows you to add push content links. Links can be shown in a Rev webcast player at end of webcast or during a webcast in progress.",
+        "deprecated": true,
+        "summary": "Add Push Links to a Webcast (Deprecated)",
+        "description": "This is a deprecated endpoint. Use <a href=/reference/createbanner>Add Banners to a Webcast</a> instead.",
         "operationId": "createPushContentLink",
         "parameters": [
           {
@@ -7688,8 +7690,9 @@
         "tags": [
           "Webcasts"
         ],
-        "summary": "Set Push Link Status",
-        "description": "Activates or deactivates a push link for a Webcast. Activating a link makes it visible to attendees. Only Manual type links can be activated/deactivated. </br></br>Multiple links can be active but only one at a time is activated/deactivated each time the API is run. Additionally, the webcast must be in-progress for a push link to be activated/deacivated.",
+        "deprecated": true,
+        "summary": "Set Push Link Status (Deprecated)",
+        "description": "This is a deprecated endpoint. Use <a href=/reference/setbannerstatus>Set Banner Status</a> instead.",
         "operationId": "setPushContentLinkStatus",
         "x-sdk-method-name": "setPushContentLinkStatus",
         "parameters": [
@@ -7747,8 +7750,9 @@
         "tags": [
           "Webcasts"
         ],
-        "summary": "Update Push Links for a Webcast",
-        "description": "Updates previously created push links for a Webcast. You must specify both the webcast and the link Ids.",
+        "deprecated": true,
+        "summary": "Update Push Links for a Webcast (Deprecated)",
+        "description": "This is a deprecated endpoint. Use <a href=/reference/updatebanner>Update Banner for a Webcast</a> instead.",
         "operationId": "updatePushContentLink",
         "x-sdk-method-name": "editPushContentLink",
         "parameters": [
@@ -7810,9 +7814,10 @@
         "tags": [
           "Webcasts"
         ],
-        "summary": "Delete a Push Link for a Webcast",
-        "description": "Deletes previously created push links for a Webcast. You must specify both the webcast and the link Ids.",
-        "operationId": "DeleteWebcastPushContentLink",
+        "deprecated": true,
+        "summary": "Delete a Push Link for a Webcast (Deprecated)",
+        "description": "This is a deprecated endpoint. Use <a href=/reference/deletewebcastbanner>Delete a Banner for a Webcast</a> instead.",
+        "operationId": "deleteWebcastPushContentLink",
         "x-sdk-method-name": "deletePushContentLink",
         "parameters": [
           {
@@ -7831,6 +7836,276 @@
             "name": "id",
             "in": "path",
             "description": "push content link id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/banners": {
+      "get": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Get Banners for a Webcast",
+        "description": "Retrieves a list of <em>all</em> banners for a specific webcast.",
+        "operationId": "getWebcastBanners",
+        "x-sdk-method-name": "getWebcastBanners",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/bannersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/banner": {
+      "post": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Add Banners to a Webcast",
+        "description": "This API allows you to add banners. Banners can be shown in a Rev webcast player at end of webcast or during a webcast in progress.",
+        "operationId": "createBanner",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast to add push links to.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "banner",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/bannerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/banner"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/banner/{id}/status": {
+      "put": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Set Banner Status",
+        "description": "Activates or deactivates a banner for a Webcast. Activating a banner makes it visible to attendees. Only Manual type links can be activated/deactivated. </br></br>Multiple banners can be active but only one at a time is activated/deactivated each time the API is run. Additionally, the webcast must be in-progress for a banner to be activated/deacivated.",
+        "operationId": "setBannerStatus",
+        "x-sdk-method-name": "setBannerStatus",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Banner id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Banner status",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/setEnabledRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/banner/{id}": {
+      "put": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Update Banner for a Webcast",
+        "description": "Updates previously created banner for a Webcast. You must specify both the webcast and the banner Id.",
+        "operationId": "updateBanner",
+        "x-sdk-method-name": "updateBanner",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast that has the push content enabled.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "banner id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "banner",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/bannerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/banner"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Delete a Banner for a Webcast",
+        "description": "Deletes previously created banner for a Webcast. You must specify both the webcast and the link Id.",
+        "operationId": "deleteWebcastBanner",
+        "x-sdk-method-name": "deleteWebcastBanner",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast that contains the banners.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "banner id",
             "required": true,
             "schema": {
               "type": "string"
@@ -12363,6 +12638,9 @@
           },
           "viewerIdEnabled": {
             "type": "boolean"
+          },
+          "enableAutoShowChapterImages": {
+            "type": "boolean"
           }
         }
       },
@@ -12628,18 +12906,18 @@
           },
           "enableRatings": {
             "type": "boolean",
-            "description": "Default=true. Allows video to be rated.",
-            "default": true
+            "description": "Default=false. Allows video to be rated.",
+            "default": false
           },
           "enableDownloads": {
             "type": "boolean",
-            "description": "Default=true. Allows video to be downloaded.",
-            "default": true
+            "description": "Default=false. Allows video to be downloaded.",
+            "default": false
           },
           "enableComments": {
             "type": "boolean",
-            "description": "Default=true. Allows comments on the video.",
-            "default": true
+            "description": "Default=false. Allows comments on the video.",
+            "default": false
           },
           "enableExternalApplicationAccess": {
             "type": "boolean",
@@ -12698,6 +12976,10 @@
             "type": "boolean",
             "description": "Default=false. Displays viewer information over the video for playback on the web.",
             "default": false
+          },
+          "enableAutoShowChapterImages": {
+            "type": "boolean",
+            "description": "When chapter images exist, the video playback can be enabled to show or hide the images by default."
           }
         }
       },
@@ -14194,6 +14476,23 @@
           "legacyViewCount": {
             "type": "integer",
             "description": "Retain the total views count from an outside system as an optional param."
+          },
+          "postUploadActions": {
+            "type": "object",
+            "description": "Transcribe the video once the upload is complete.",
+            "properties": {
+              "transcribeLanguageId": {
+                "description": "Language code. View <a href=/docs/supported-languages>Supported Languages</a> for source languages in Technical Requirements.",
+                "type": "string"
+              },
+              "metadataGenerationFields": {
+                "description": "Creates AI-generated metadata for a given video based on the type specified. You must specify the field type you want to generate (description/title/tags/chapters). </br></br>This feature requires English transcription and must also be enabled for your Rev account.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       },
@@ -15364,7 +15663,8 @@
             "nullable": true
           },
           "vcMicrosoftTeamsMeetingUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "If this is an MS Teams event then the URL to the MS Teams meeting."
           },
           "videoSourceType": {
             "$ref": "#/components/schemas/eventSourceType"
@@ -15517,17 +15817,17 @@
               }
             }
           },
-          "pushContent": {
+          "bannerDetails": {
             "type": "object",
-            "title": "eventDetailsPushContent",
+            "title": "eventDetailsBanners",
             "properties": {
               "isEnabled": {
                 "type": "boolean"
               },
-              "contentLinks": {
+              "banners": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/pushContentLink"
+                  "$ref": "#/components/schemas/banner"
                 }
               }
             }
@@ -15564,17 +15864,19 @@
       },
       "eventSourceType": {
         "type": "string",
-        "description": "This is an enum and can have the following values: <code>PresentationProfile, Rtmp, SipAddress, WebexTeam, WebexLiveStream, Zoom, Vod, Pexip, WebrtcSinglePresenter.</code></br></br> Note that WebrtcSinglePresenter represents <i>Webcam and Screenshare</i> source in rev UI.  This field is required to create/edit WebexLiveStream event.",
+        "description": "This is an enum and can have the following values: <code>PresentationProfile, SipAddress, WebexTeam, WebexLiveStream, Zoom, MicrosoftTeams, Rtmp, Vod, WebrtcSinglePresenter, Pexip, Producer</code></br></br> Note that WebrtcSinglePresenter represents <i>Webcam and Screenshare</i> source in rev UI.  This field is required to create/edit WebexLiveStream event.",
         "enum": [
           "PresentationProfile",
-          "Rtmp",
           "SipAddress",
           "WebexTeam",
           "WebexLiveStream",
           "Zoom",
+          "MicrosoftTeams",
+          "Rtmp",
           "Vod",
+          "WebrtcSinglePresenter",
           "Pexip",
-          "WebrtcSinglePresenter"
+          "Producer"
         ]
       },
       "startWebcastRequest": {
@@ -15708,6 +16010,60 @@
           "isEnabled": {
             "type": "boolean",
             "description": "Only manual type push content links are enabled/disabled. At end links appear when the webcast ends."
+          },
+          "pushMethod": {
+            "type": "string",
+            "enum": [
+              "Manual",
+              "AtEnd"
+            ]
+          }
+        }
+      },
+      "bannersResponse": {
+        "type": "object",
+        "properties": {
+          "banners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/banner"
+            }
+          }
+        }
+      },
+      "banner": {
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "$ref": "#/components/schemas/bannerRequest"
+          }
+        ]
+      },
+      "bannerRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Provides a description of the banner for the attendee."
+          },
+          "message": {
+            "type": "string",
+            "description": "The message that displays in the banner."
+          },
+          "link": {
+            "type": "string",
+            "description": "The link/URL that opens when clicked in the banner."
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "description": "Only manual type banners are enabled/disabled. At end banners appear when the webcast ends."
           },
           "pushMethod": {
             "type": "string",
@@ -16099,6 +16455,10 @@
             "type": "string",
             "description": "SIP address if recording a video conference as the source. Only required if the video source type is SipAddress or Pexip."
           },
+          "vcMicrosoftTeamsMeetingUrl": {
+            "type": "string",
+            "description": "If this is an MS Teams event then the URL to the MS Teams meeting."
+          },
           "videoSourceType": {
             "$ref": "#/components/schemas/eventSourceType"
           },
@@ -16265,9 +16625,9 @@
             }
           },
           "pushContent": {
+            "deprecated": true,
             "type": "object",
-            "description": "Maximum allowed push content links are five only.",
-            "title": "eventRequestPushContent",
+            "title": "eventDetailsPushContent",
             "properties": {
               "isEnabled": {
                 "type": "boolean"
@@ -16275,15 +16635,24 @@
               "contentLinks": {
                 "type": "array",
                 "items": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/pushContentLinkRequest"
-                    },
-                    {
-                      "$ref": "#/components/schemas/pushContentLink"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/pushContentLink"
                 }
+              }
+            }
+          },
+          "bannerDetails": {
+            "type": "object",
+            "description": "Maximum allowed banners are five.",
+            "title": "eventRequestBanners",
+            "properties": {
+              "isEnabled": {
+                "type": "boolean"
+              },
+              "banners": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/banner"
+                  }
               }
             }
           },
