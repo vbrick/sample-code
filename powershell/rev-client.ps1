@@ -3,7 +3,7 @@
     VBrick Rev Client
 .DESCRIPTION
     VBrick Rev Client
-    Built 2024-06-14
+    Built 2024-07-16
     DISCLAIMER:
         This script is not an officially supported Vbrick product, and is provided AS-IS.
 
@@ -58,7 +58,8 @@
     Get-RevRoles
     Get-RevUser
     New-RevUser
-    Search-RevUsersGroups
+    Search-RevUsersGroupsChannels
+    Search-RevUsers
 
     ### Utilities
     New-RevFormData
@@ -371,6 +372,8 @@ class RevClient {
                 if ($StatusCode -eq 429 -and $attempt -lt $this.Max429Retries) {
                     Write-Warning "[Rev] 429 Rate Limiting for $Method $Endpoint - Retry after 1 minute"
                     Start-Sleep -Seconds 60;
+                } else {
+                    break;
                 }
             } while ($attempt -lt $this.Max429Retries);
 
@@ -655,7 +658,23 @@ class RevError : System.InvalidOperationException
         $this.Code = $Code;
         $this.Detail = $Detail;
     }
-    static [System.Tuple[string,string]] GetDetail([string] $raw = "", [System.Net.HttpStatusCode] $statusCode, [string] $statusDescription = "") {
+    RevError($Message, [Microsoft.PowerShell.Commands.WebResponseObject] $response, [string] $code, [string] $detail) : base($Message) {
+        $this.StatusCode = $response.StatusCode;
+        $this.Endpoint = $response.ResponseUri.PathAndQuery;
+        $this.Method = $response.Method;
+        $this.Response = $response;
+        if ($Code -and $Detail) {
+            $this.Code = $Code;
+            $this.Detail = $Detail;
+        }
+    }
+    static [System.Tuple[string,string]] GetDetail([object] $raw = "", [System.Net.HttpStatusCode] $statusCode, [string] $statusDescription = "") {
+        if ($raw -is [byte[]]) {
+            $raw = [system.text.encoding]::UTF8.GetString($raw);
+        } elseif ($raw -isnot [string] -and $null -ne $raw) {
+            Write-Verbose "Rev Error Get Detail - raw response is not string - $($raw.GetType())";
+            $raw = "$raw";
+        }
         if ([string]::IsNullOrWhiteSpace($raw)) { $raw = ""; }
         $codeValue = [string] ([int] $statusCode);
         $detailValue = $statusDescription;
@@ -716,6 +735,9 @@ class RevError : System.InvalidOperationException
         $Message = "$($body[0]) $($body[1]) $($path)";
 
         return [RevError]::new($Message, $response, $body[0], $body[1]);
+    }
+    static [RevError] Create([System.Exception] $Exception, $method, $endpoint) {
+        return [RevError]::new($Exception, $method, $endpoint);
     }
 }
 
@@ -1487,7 +1509,7 @@ function New-RevFormData
                 $Form.Add($Field.Content);
             } else {
                 $content = New-RevFormDataField @Field;
-                $Form.Add($content);
+                $Form.Add($content.Content);
             }
         }
         Write-Output $form -NoEnumerate
@@ -1854,6 +1876,24 @@ Upload a video to Rev
         [bool]
         $EnableComments,
 
+        # Default=false. This enables or disables the ability to allow external application access for a video.
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [RevMetadataAttribute(IsPassthru)]
+        [bool]
+        $EnableExternalApplicationAccess,
+
+        # Default=false. This enables or disables the ability to allow external url access for a video.
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [RevMetadataAttribute(IsPassthru)]
+        [bool]
+        $EnableExternalViewersAccess,
+
+        # Retain the total views count from an outside system as an optional param.
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [RevMetadataAttribute(IsPassthru)]
+        [int64]
+        $LegacyViewCount,
+
         # This sets access control for the video. Keep in mind that Access Controls are strictly dictated by <a href=/docs/roles-and-permissions>Roles and Permissions</a> This is an enum and can have the following values: <code>Public/AllUsers/Private</code>. <p>A value of <strong>AllUsers</strong> is equal to all internal/authenticated users. A value of <strong>Private</strong> allows access to those Users, Groups, and Channels <em>explicitly</em> identified.</p><p> Be aware that you can assign multiple Users, Groups, and Channels in the <strong>accessControlEntites</strong> parameter in addition to the <strong>AllUser</strong> or <strong>Public</strong> settings. If no value is set, the default is <strong>Private</strong>.</p> <p>In the case of an incorrect value, the call is rejected with an HTTP 400 error.</p><p><strong>Note:</strong> If <strong>Channels</strong> is set at the videoAccessControl, it is translated to <strong>Private</strong> and a Channel <em>must</em> be specified in the accessControlEntities. If a Channel is included in the accessControlEntities, then the canEdit parameter is ignored.</p>
         [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
         [RevMetadataAttribute(IsPassthru)]
@@ -1916,45 +1956,35 @@ Upload a video to Rev
         [string[]]
         $UserTags,
 
+        #Default=false. Displays viewer information over the video for playback on the web.
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [RevMetadataAttribute(IsPassthru)]
+        [switch]
+        $ViewerIdEnabled,
+
+        # LINKED URL ONLY - specify is a linked URL instead of file upload
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [switch] $IsLinkedUrl,
+
+        # LINKED URL ONLY - specify linked URL is a live url
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [switch] $IsLive,
+
+        # LINKED URL ONLY - specify linked URL is a HLS / Adaptive Bitrate file
+        [Parameter(ParameterSetName="Upload", ValueFromPipelineByPropertyName)]
+        [switch] $IsHLS,
+
         # input filesize at which script will warn that upload may get buffered into memory and cause performance issues
         [Parameter()] [int64] $FilesizeWarningThresholdMB = 500,
 
         [Parameter()] [RevClient] $Client = (Get-RevClient)
     )
     process {
-        $Info = Get-Item ($Path | Select-Object -first 1);
-        $MetaInfo = Get-InternalRevMimeInfo -Filename $Info.Name -Extension $Info.Extension -ContentType $ContentType
-
-        if ($MetaInfo.WasChanged) {
-            Write-Verbose "Changed contenttype/extension of uploaded video to match $($Info.Name) -> $($MetaInfo.Filename) $($ContentType) -> $($MetaInfo.ContentType)"
-        }
-
-        $formFields = [System.Collections.Generic.List[object]]@(
-            @{
-                Name = "VideoFile";
-                Value = $Info;
-                ContentType = $MetaInfo.ContentType;
-                FileName = $MetaInfo.Filename;
-            }
-        );
-
-        # warn if filesize is big and old powershell
-        $isModern = $global:PSVersionTable.PSVersion.Major -gt 5;
-        if (-not $isModern) {
-            if ($Info.Length -gt ($FilesizeWarningThresholdMB * 1mb)) {
-                Write-Warning "WARNING: Rev Video Upload may buffer video contents into RAM before uploading. This can cause performance issues or out of memory errors."
-            }
-        }
-
-        $Method = [System.Net.Http.HttpMethod]::Post;
-        $Endpoint = "/api/uploads/videos";
-
         $isReplace = $PSCmdlet.ParameterSetName -eq "Replace";
 
-        if ($isReplace) {
-            $Method = [System.Net.Http.HttpMethod]::Put;
-            $Endpoint = "/api/uploads/videos/$VideoID";
-        } else {
+        # parse metadta
+        $payload = $null;
+        if (-not $isReplace) {
             # somewhat convoluted way to
             # default to metadata passed in through pipeline (as hashtable)
             # override with data passed in through -Metadata arg
@@ -1969,6 +1999,56 @@ Upload a video to Rev
                 $payload.Uploader = $Client.Username
             }
 
+            # make sure publish date is in correct format
+            if (-not [string]::IsNullOrWhiteSpace($payload.PublishDate) -and ($payload.PublishDate -notmatch '\d{4}-\d{2}-\d{2}')) {
+                Write-Verbose "Publish Date must be in the format YYYY-MM-DD - converting using current timezone";
+                $payload.PublishDate = ([datetime]).ToString('yyyy-MM-dd');
+            }
+        }
+
+        # rate limit uploads (after initial arg parsing)
+        $Client.QueueRateLimit("uploadVideo");
+
+        # Special handling for linked URL, which doesn't need to get file info
+        if ($IsLinkedUrl) {
+            $payload.LinkedUrl = @{
+                Url = $Path;
+                EncodingType = if ($IsHLS) { "HLS" } else { "H264" };
+                Type = if ($IsLive) { "Live" } else { "Vod" };
+                IsMulticast = $false;
+            };
+            $resp = $Client.Post("/api/v2/videos", $payload);
+            return $resp.videoId;
+        }
+
+        # Validate and add video file
+        $Info = Get-Item ($Path | Select-Object -first 1);
+        $MetaInfo = Get-InternalRevMimeInfo -Filename $Info.Name -Extension $Info.Extension -ContentType $ContentType
+
+        if ($MetaInfo.WasChanged) {
+            Write-Verbose "Changed contenttype/extension of uploaded video to match $($Info.Name) -> $($MetaInfo.Filename) $($ContentType) -> $($MetaInfo.ContentType)"
+        }
+
+        # warn if filesize is big and old powershell
+        $isModern = $global:PSVersionTable.PSVersion.Major -gt 5;
+        if (-not $isModern) {
+            if ($Info.Length -gt ($FilesizeWarningThresholdMB * 1mb)) {
+                Write-Warning "WARNING: Rev Video Upload may buffer video contents into RAM before uploading. This can cause performance issues or out of memory errors."
+            }
+        }
+
+        # create form
+        $formFields = [System.Collections.Generic.List[object]]@(
+            @{
+                Name = "VideoFile";
+                Value = $Info;
+                ContentType = $MetaInfo.ContentType;
+                FileName = $MetaInfo.Filename;
+            }
+        );
+
+        # add upload metadata json
+        if (-not $isReplace) {
             $formFields.Add(@{
                 Name = "Video";
                 Value = $payload | ConvertTo-Json -Depth 10 -Compress;
@@ -1976,8 +2056,7 @@ Upload a video to Rev
             });
         }
         $Form = New-RevFormData -Fields $formFields;
-
-        $Client.QueueRateLimit("uploadVideo");
+        
         try {
             if ($isReplace) {
                 $Client.Put("/api/uploads/videos/$VideoID", $Form);
@@ -1998,7 +2077,7 @@ function Wait-RevTranscode
 .SYNOPSIS
     Wait for a video to transcode
 .DESCRIPTION
-    This helper queries the status of a video and waits until processing is complete. If you pass multiple IDs then the function will wait until all are completed before moving on
+    This helper queries the status of a video and waits until processing is complete. If you pass multiple IDs then the function will wait until all are completed before moving on, unless -Race is specified
 .OUTPUTS
     @{
         [string] videoId,
@@ -2032,6 +2111,11 @@ function Wait-RevTranscode
         [int64]
         $PollIntervalSec = 15,
 
+        # if true then return as soon as one of the specified video Ids finishes, rather than all
+        [Parameter()]
+        [switch]
+        $Race,
+
         # if true then show progress bar
         [Parameter()]
         [switch]
@@ -2051,6 +2135,7 @@ function Wait-RevTranscode
         $idsToProcess = [System.Collections.Generic.List[string]]::new();
     }
     process {
+        # grab all ids to process all at once in end block
         if ($_) {
             $idsToProcess.Add($_);
         }
@@ -2058,6 +2143,7 @@ function Wait-RevTranscode
     end {
         $timeoutDate = (get-date) + [timespan]::FromSeconds($TimeoutSec);
 
+        # prepare stats object for tracking progress
         $stats = @{};
         $numVideos = ($idsToProcess | Measure-Object).Count;
         $isMultipleProgress = $Progress -and $numVideos -gt 1;
@@ -2082,6 +2168,7 @@ function Wait-RevTranscode
             Write-Progress -Id 0 -Activity "Processing..." -PercentComplete 0
         }
 
+        # helper function to write status to host
         function writeProgress($videoData, $setComplete = $false) {
             if (-not $Progress) {
                 return;
@@ -2111,6 +2198,7 @@ function Wait-RevTranscode
             Write-Progress @progressArgs -Status $statusMessage -PercentComplete $pct;
         }
 
+        # loop until timeout
         try {
             while ((Get-Date) -lt $timeoutDate) {
                 $completedVids = $idsToProcess | where-object {
@@ -2119,10 +2207,28 @@ function Wait-RevTranscode
                     if ($videoData.isComplete) {
                         return $true;
                     }
-                    $status = Get-RevVideoStatus $currentId;
-                    $videoData.status = $status;
-                    if ($status.overallProgress -eq 1 -and -not $status.isProcessing -or $status.status -eq 'ProcessingFailed') {
-                        $videoData.isComplete = $true;
+
+                    try {
+                        $status = Get-RevVideoStatus $currentId;
+                        $videoData.status = $status;
+
+                        if ($status.overallProgress -eq 1 -and -not $status.isProcessing -or $status.status -eq 'ProcessingFailed') {
+                            $videoData.isComplete = $true;
+                        }
+                    } catch {
+                        $ex = $_.Exception;
+                        # if video not found then skip
+                        if ($ex.StatusCode -eq 404) {
+                            $videoData.status = @{
+                                videoId = $currentId;
+                                status = 'Deleted';
+                                isProcessing = $false;
+                                overallProgress = 1;
+                            }
+                            $videoData.isComplete = $true;
+                        } else {
+                            throw $_
+                        }
                     }
 
                     writeProgress $videoData;
@@ -2135,6 +2241,9 @@ function Wait-RevTranscode
 
                 # all videos finished
                 if ($completedVids.Count -eq $numVideos) {
+                    break;
+                } elseif ($completedVids.Count -ge 1 -and $Race) {
+                    # single video finished, break early
                     break;
                 }
 
@@ -2894,13 +3003,13 @@ function Edit-RevUser
 }
 
 
-function Search-RevUsersGroups
+function Search-RevUsersGroupsChannels
 {
 <#
 .SYNOPSIS
-    Search Users and Groups
+    Search Users, Groups and Channels
 .DESCRIPTION
-    Users & Groups - Searches the specified access entity (user/group) in Rev for a specified query string. If no entity is specified, then both are searched.
+    Users & Groups - Searches the specified access entity (user/group/channel) in Rev for a specified query string. If no entity is specified, then all are searched.
 .OUTPUTS
     @{
         [object[]] accessEntities,
@@ -2925,7 +3034,7 @@ function Search-RevUsersGroups
 
         # Type of access entity to search (user/group). One or more may be provided. If no type is provided, all entities are included.
         [Parameter()]
-        [ValidateSet("User", "Group")]
+        [ValidateSet("User", "Group", "Channel")]
         [RevMetadataAttribute()]
         [string]
         $Type,
@@ -2935,6 +3044,9 @@ function Search-RevUsersGroups
 
         # Only return groups
         [Parameter()] [switch] $Groups,
+
+        # Only return channels
+        [Parameter()] [switch] $Channels,
 
         # Number of access entities to get per page. (By default count is 1000)
         [Parameter()]
@@ -2979,10 +3091,55 @@ function Search-RevUsersGroups
             $params.Body.Type = 'User'
         } elseif ($Groups) {
             $params.Body.Type = 'Group'
+        } elseif ($Channels) {
+            $params.Body.Type = 'Channel'
         }
     }
 
     Get-InternalRevResultSet -Method Get -Endpoint "/api/v2/search/access-entity" -TotalKey "totalEntities" -HitsKey "accessEntities" -Activity "Searching Access Entities..." @params -Client $Client -RateLimitKey "searchAccessEntities";
+}
+
+
+function Search-RevUsers
+{
+<#
+.SYNOPSIS
+    Search Users
+.DESCRIPTION
+    Users - Searches the specified access entity in Rev for a specified query string.
+.OUTPUTS
+    @{
+        [object[]] accessEntities,
+        [int] totalEntities,
+        [string] scrollId,
+        [int] statusCode,
+        [string] statusDescription,
+    }
+.LINK
+    https://revdocs.vbrick.com/reference/searchaccessentity
+#>
+    [CmdletBinding()]
+    [OutputType([object[]])]
+
+    param(
+        # Search string. If no search string is provided, treated as a blank search. Example: If the group parameter is specified with no search string, the first 1000 groups are returned (count parameter default).
+        [Parameter(Position=0)] [Alias("Query")] [RevMetadataAttribute()] [string] $Q,
+
+        # Number of access entities to get per page. (By default count is 1000)
+        [Parameter()] [RevMetadataAttribute("Body/Count")] [int32] $PageSize = 100,
+
+        [Parameter()] [Alias("First")] [RevMetadataAttribute(IsPassthru)] [int32] $MaxResults,
+        [Parameter()] [RevMetadataAttribute(IsPassthru)] [switch] $ShowProgress,
+        [Parameter()] [ValidateSet("Continue", "Ignore", "Stop")] [RevMetadataAttribute(IsPassthru)] [string] $ScrollExpireAction,
+
+        # Extra arguments to pass to Invoke-WebRequest
+        [Parameter()] [RevMetadataAttribute(IsPassthru)] [hashtable] $RequestArgs = @{},
+
+        # The Rev Client instance to use. If not defined use default one for this session
+        [Parameter()] [RevClient] $Client = (Get-RevClient)
+    )
+
+    Search-RevUsersGroupsChannels @PSBoundParameters -Type User;
 }
 
 
@@ -3588,5 +3745,5 @@ function Get-RevWebcastStatus
 }
 
 
-Export-ModuleMember -Function @("Connect-Rev", "Disconnect-Rev", "Test-Rev", "Invoke-Rev", "New-RevClient", "Get-RevClient", "Set-RevClient", "Import-RevClient", "Export-RevClient", "Get-RevAccountId", "New-RevVideo", "Set-RevVideo", "Remove-RevVideo", "Search-RevVideos", "Wait-RevTranscode", "Edit-RevVideoDetails", "Edit-RevVideoMigration", "Get-RevVideoDetails", "Get-RevVideoFile", "Get-RevVideoTranscriptionFile", "Get-RevVideoTranscriptionFiles", "Get-RevThumbnailFile", "Get-RevWebcast", "Search-RevWebcasts", "New-RevWebcast", "Edit-RevWebcast", "Get-RevWebcastStatus", "Get-RevRoles", "Get-RevUser", "New-RevUser", "Search-RevUsersGroups", "New-RevFormData", "New-RevFormDataField", "Set-RevRateLimit", "Get-RevRateLimit", "Wait-RevRateLimit")
+Export-ModuleMember -Function @("Connect-Rev", "Disconnect-Rev", "Test-Rev", "Invoke-Rev", "New-RevClient", "Get-RevClient", "Set-RevClient", "Import-RevClient", "Export-RevClient", "Get-RevAccountId", "New-RevVideo", "Set-RevVideo", "Remove-RevVideo", "Search-RevVideos", "Wait-RevTranscode", "Edit-RevVideoDetails", "Edit-RevVideoMigration", "Get-RevVideoDetails", "Get-RevVideoFile", "Get-RevVideoTranscriptionFile", "Get-RevVideoTranscriptionFiles", "Get-RevThumbnailFile", "Get-RevWebcast", "Search-RevWebcasts", "New-RevWebcast", "Edit-RevWebcast", "Get-RevWebcastStatus", "Get-RevRoles", "Get-RevUser", "New-RevUser", "Search-RevUsers", "Search-RevUsersGroupsChannels", "New-RevFormData", "New-RevFormDataField", "Get-InternalRevResultSet", "Set-RevRateLimit", "Get-RevRateLimit", "Wait-RevRateLimit")
 } | Import-Module -Global -Force
