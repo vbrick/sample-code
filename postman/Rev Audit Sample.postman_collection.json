@@ -1,0 +1,380 @@
+{
+	"info": {
+		"_postman_id": "26f52cf3-aafb-4059-80bb-f96d9072cd3d",
+		"name": "Rev Audit Sample",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login User APIKey/Secret",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Save Session Token\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.environment.set('accessToken', jsonData.token);\r",
+							"    pm.environment.set('expiration', jsonData.expiration);\r",
+							"    console.log('Saved Access Token to environment');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"apiKey\": \"{{userApiKey}}\", \"secret\": \"{{userSecret}}\" }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{revurl}}/api/v2/authenticate",
+					"host": [
+						"{{revurl}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"authenticate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Rev Account ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Save Account ID\", function () {\r",
+							"    pm.expect(pm.response.status === 200, 'Failed - have you updated the Rev URL in the Evnrionment settings?');\r",
+							"    const rawPage = pm.response.text();\r",
+							"    var accountId = (/BootstrapContext.*account[\":{ ]*\"id\"\\s*:\\s*\"([^\"]+)\"/.exec(rawPage) || [])[1] || '';\r",
+							"    pm.environment.set('accountId', accountId);\r",
+							"    console.log('Saved Rev Account ID to environment', accountId);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Account ID found\", function () {\r",
+							"    pm.expect(pm.environment.get('accountId') || '').to.match(/[0-9a-f-]{36}/)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{revurl}}/",
+					"host": [
+						"{{revurl}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Confirm Account Admin",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const isValidAuthHeader = !!/vbrick\\s+[^\\{ ]+/i.test(pm.request.headers.get('authorization'));\r",
+							"if (!isValidAuthHeader) {\r",
+							"    console.warn('Invalid authorization header - did you use Login call or forget to set accessToken in the Environment?');\r",
+							"}\r",
+							"pm.test('Valid Request', function () {\r",
+							"    pm.expect(isValidAuthHeader).to.eq(true);\r",
+							"})\r",
+							"pm.test(\"Authorized\", function() {\r",
+							"    pm.expect(pm.response.code).to.eq(200);\r",
+							"});\r",
+							"pm.test('Is Account Admin', function () {\r",
+							"    const user = pm.response.json();\r",
+							"    const adminRole = user.roles.find(role => /Account\\s*Admin/i.test(role.name));\r",
+							"    if (!adminRole) { console.warn(\"Current user is not an Account Admin - Audit service unavailable\") }\r",
+							"    pm.expect(adminRole).to.be.not.undefined;\r",
+							"})\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Vbrick {{accessToken}}",
+						"description": "Run Login call first to populate environment with accessToken",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{revurl}}/api/v2/users/me",
+					"host": [
+						"{{revurl}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"users",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Audit - Get User Access For Last X Days",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"let daysBack = pm.environment.get('auditGetDaysBack');\r",
+							"if (!daysBack || isNaN(daysBack) || daysBack <= 0) {\r",
+							"    console.log('Using default days back of 2. Customize in the environment auditGetDaysBack variable');\r",
+							"    daysBack = 2;\r",
+							"}\r",
+							"\r",
+							"const toDate = new Date();\r",
+							"let fromDate = new Date();\r",
+							"fromDate.setDate(fromDate.getDate() - daysBack);\r",
+							"\r",
+							"pm.variables.set('toDate', toDate.toISOString());\r",
+							"pm.variables.set('fromDate', fromDate.toISOString());\r",
+							"// save for subsequent requests\r",
+							"pm.environment.set('toDate', toDate.toISOString());\r",
+							"console.log('Getting Audit Info in date range', toDate.toISOString(), fromDate.toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const totalRecords = `${(pm.response.headers.get('totalrecords') || '')}`.trim();\r",
+							"const nextFromDate = `${(pm.response.headers.get('nextfromdate') || '')}`.trim();\r",
+							"const nextContinuationToken = `${(pm.response.headers.get('nextcontinuationtoken') || '')}`.trim();\r",
+							"\r",
+							"pm.test('Check More Data', function() {\r",
+							"    if (!nextContinuationToken) {\r",
+							"        console.log('Got all audit records for requested range');\r",
+							"        pm.environment.unset('toDate');\r",
+							"        pm.environment.unset('nextContinuationToken');\r",
+							"        pm.environment.unset('totalRecords');\r",
+							"        pm.environment.unset('nextFromDate');\r",
+							"    } else {\r",
+							"        console.warn(`More data available (total: ${totalRecords}) - run again to get next page of data`);\r",
+							"        pm.environment.set('toDate', pm.variables.get('toDate'));\r",
+							"        pm.environment.set('nextContinuationToken', nextContinuationToken);\r",
+							"        pm.environment.set('totalRecords', totalRecords);\r",
+							"        pm.environment.set('nextFromDate', nextFromDate);\r",
+							"    }\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Vbrick {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{revurl}}/network/audit/accounts/{{accountId}}/userAccess?fromDate={{fromDate}}&toDate={{toDate}}",
+					"host": [
+						"{{revurl}}"
+					],
+					"path": [
+						"network",
+						"audit",
+						"accounts",
+						"{{accountId}}",
+						"userAccess"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "{{fromDate}}",
+							"description": "see pre-request-script for dynamically setting value, or just hardcode as ISO string"
+						},
+						{
+							"key": "toDate",
+							"value": "{{toDate}}",
+							"description": "see pre-request-script for dynamically setting value, or just hardcode as ISO string"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Audit - Get Next Page of User Access",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.test(\"Continuing from previous page of response\", function () {\r",
+							"    if (!pm.environment.has('nextContinuationToken')) {\r",
+							"        console.error('Done getting previous results - run \"Audit - Get User Access For Last X Days\" to test audit request again');\r",
+							"    }\r",
+							"    pm.expect(pm.environment.has('nextContinuationToken'));\r",
+							"})\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const totalRecords = `${(pm.response.headers.get('totalrecords') || '')}`.trim();\r",
+							"const nextFromDate = `${(pm.response.headers.get('nextfromdate') || '')}`.trim();\r",
+							"const nextContinuationToken = `${(pm.response.headers.get('nextcontinuationtoken') || '')}`.trim();\r",
+							"\r",
+							"pm.test('Check More Data', function() {\r",
+							"    if (!nextContinuationToken) {\r",
+							"        console.log('Got all audit records for requested range');\r",
+							"        pm.environment.unset('toDate');\r",
+							"        pm.environment.unset('nextContinuationToken');\r",
+							"        pm.environment.unset('totalRecords');\r",
+							"        pm.environment.unset('nextFromDate');\r",
+							"    } else {\r",
+							"        console.warn(`More data available (total: ${totalRecords}) - run again to get next page of data`);\r",
+							"        pm.environment.set('toDate', pm.variables.get('toDate'));\r",
+							"        pm.environment.set('nextContinuationToken', nextContinuationToken);\r",
+							"        pm.environment.set('totalRecords', totalRecords);\r",
+							"        pm.environment.set('nextFromDate', nextFromDate);\r",
+							"    }\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Vbrick {{accessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{revurl}}/network/audit/accounts/{{accountId}}/userAccess?fromDate={{nextFromDate}}&toDate={{toDate}}&nextContinuationToken={{nextContinuationToken}}",
+					"host": [
+						"{{revurl}}"
+					],
+					"path": [
+						"network",
+						"audit",
+						"accounts",
+						"{{accountId}}",
+						"userAccess"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "{{nextFromDate}}",
+							"description": "see pre-request-script for dynamically setting value, or just hardcode as ISO string"
+						},
+						{
+							"key": "toDate",
+							"value": "{{toDate}}",
+							"description": "see pre-request-script for dynamically setting value, or just hardcode as ISO string"
+						},
+						{
+							"key": "nextContinuationToken",
+							"value": "{{nextContinuationToken}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
