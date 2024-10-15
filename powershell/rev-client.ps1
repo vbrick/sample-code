@@ -1585,6 +1585,13 @@ function Search-RevVideos
         [string]
         $Q,
 
+        # List of video ids to search for - specify multiple ids by joining with a comma. Do not include more than 100
+        [Parameter()]
+        [Alias("VideoId")]
+        [RevMetadataAttribute()]
+        [string]
+        $VideoIds,
+
         # List of Category Ids to specify searching videos only in those categories.<p>Example: <code>Categories=a0e5cbf6-95cb-46e7-8600-4c07bc31f80b, b1f5cbf6-95cb-46e7-8600-4c07bc31g9pc.</code></p><p> Pass a blank entry to return uncategorized videos. Example: <code>Categories=</code></p>
         [Parameter()]
         [Alias("CategoryIds")]
@@ -1717,6 +1724,17 @@ function Search-RevVideos
         [switch]
         $HasHls,
 
+        # Limit to videos within a specific Channel
+        [Parameter()]
+        [RevMetadataAttribute()]
+        [string]
+        $ChannelId,
+
+        # Filter by videos that match a specific list of custom fields
+        [Parameter()]
+        [hashtable]
+        $CustomFields,
+
         # Number of access entities to get per page. (By default count is 1000)
         [Parameter()]
         [RevMetadataAttribute("Body/Count")]
@@ -1759,6 +1777,11 @@ function Search-RevVideos
         $params.Body.Type = 'live';
     } elseif ($VodOnly) {
         $params.Body.Type = 'vod';
+    }
+
+    # custom fields just get added as query params
+    if ($CustomFields) {
+        $CustomFields.GetEnumerator() | ForEach-Object { $params.Body.($_.Key) = $_.Value; }
     }
 
     Write-Verbose "Searching for videos with parameters $(($params | ConvertTo-Json -Compress -ErrorAction Ignore))"
@@ -2138,6 +2161,8 @@ function Wait-RevTranscode
         # grab all ids to process all at once in end block
         if ($_) {
             $idsToProcess.Add($_);
+        } elseif ($VideoId) {
+            $VideoId | ForEach-Object { $idsToProcess.Add($_); }
         }
     }
     end {
@@ -2209,7 +2234,8 @@ function Wait-RevTranscode
                     }
 
                     try {
-                        $status = Get-RevVideoStatus $currentId;
+                        # get-revvideostatus in rev-client-additional-cmdlets
+                        $status = Invoke-Rev -Method Get -Endpoint "/api/v2/videos/$currentId/status" -RequestArgs $RequestArgs -Client $Client
                         $videoData.status = $status;
 
                         if ($status.overallProgress -eq 1 -and -not $status.isProcessing -or $status.status -eq 'ProcessingFailed') {
