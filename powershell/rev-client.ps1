@@ -3,7 +3,7 @@
     VBrick Rev Client
 .DESCRIPTION
     VBrick Rev Client
-    Built 2024-07-16
+    Built 2024-10-07
     DISCLAIMER:
         This script is not an officially supported Vbrick product, and is provided AS-IS.
 
@@ -78,7 +78,8 @@
 
     This example will load this script file, create a new connection to Rev and get the details of the authenticated user
 #>
-
+Add-Type -AssemblyName 'Microsoft.PowerShell.Commands.Utility'
+Add-Type -AssemblyName 'System.Net.Http'
 
 class RevMetadataAttribute : Attribute
 {
@@ -183,12 +184,11 @@ class RevAPI {
         $this._rev = $rev;
     }
 }
-Add-Type -AssemblyName 'System.Net.Http'
 
 class RevClient {
     [uri] $Url
     [string] $Token
-    [datetime] $Expiration = (Get-Date).AddHours(-1);
+    [datetime] $Expiration = [datetime]::UtcNow.AddHours(-1);
     [string] $UserId
     [string] $Username
     hidden [securestring] $Password
@@ -196,7 +196,7 @@ class RevClient {
     hidden [securestring] $Secret
     [hashtable] $WebRequestArgs = @{}
     [bool] $AutoConnect = $true
-    [int32] $Max429Retries = 1
+    [int32] $Max429Retries = 2
     [string] $AccountId
     [Version] $Version
     [hashtable] $RateLimits = @{}
@@ -228,7 +228,7 @@ class RevClient {
         return $this.Username -and $this.Password;
     }
     [bool] IsConnected() {
-        return $this.Token -and ($this:Expiration - [datetime]::now).TotalMinutes -lt 1;
+        return $this.Token -and ($this:Expiration - [datetime]::UtcNow).TotalMinutes -lt 1;
     }
     static [bool] IsAuthEndpoint([string] $Endpoint) {
         return $Endpoint -match '(v\d/authenticate|v\d/tokens)|extend-session|user/(login|logoff|session)';
@@ -236,6 +236,16 @@ class RevClient {
     [void] Initialize(
         [object]$Config
     ) {
+        # Add default rate limits
+        $this.SetRateLimit("searchVideos", 120);
+        $this.SetRateLimit("uploadVideo", 30);
+        $this.SetRateLimit("videoDetails", 2000);
+        $this.SetRateLimit("updateVideo", 30);
+        $this.SetRateLimit("auditEndpoint", 60);
+        $this.SetRateLimit("viewReport", 120);
+        $this.SetRateLimit("loginReport", 10);
+        $this.SetRateLimit("attendeesRealtime", 2);
+        
         # $this.Admin = [RevAdminAPI]::new($this);
         # $this.User = [RevUserAPI]::new($this);
         # $this.Device = [RevDeviceAPI]::new($this);
@@ -501,7 +511,7 @@ class RevClient {
 
         if ($response) {
             $this.Token = $response.token;
-            $this.Expiration = Get-Date $response.expiration;
+            $this.Expiration = ([datetime]$response.expiration).ToUniversalTime()
             $this.UserId = $response.id;
         } else {
             throw $lastError;
@@ -530,14 +540,14 @@ class RevClient {
             return $False;
         } finally {
             $this.Token = $null;
-            $this.Expiration = Get-Date;
+            $this.Expiration = [datetime]::UtcNow;
             $this.UserId = $null;
         }
     }
     [void] ExtendSession() {
         $response = $this.Post("/api/v2/user/extend-session", $null);
         if ($response) {
-            $this.Expiration = Get-Date $response.expiration;
+            $this.Expiration = ([datetime]$response.expiration).ToUniversalTime();
         }
     }
     [bool] VerifySession() {
@@ -596,7 +606,7 @@ class RevClient {
             Write-Verbose "[Rev] $key Rate Limited, sleeping $delta seconds"
             Start-Sleep -Seconds $delta;
             $bucket.Start = [datetime]::Now;
-            $this.Current = 0;
+            $bucket.Count = 0;
         }
     }
     static [datetime] ConvertJSDate([string] $val) {
@@ -878,15 +888,6 @@ function New-RevClient() {
     if (-not $local:rev) {
         $local:rev = [RevClient]::new($local:revcfg);
     }
-
-    # Add default rate limits
-    $local:rev.SetRateLimit("searchVideos", 120);
-    $local:rev.SetRateLimit("uploadVideo", 30);
-    $local:rev.SetRateLimit("videoDetails", 2000);
-    $local:rev.SetRateLimit("updateVideo", 30);
-    $local:rev.SetRateLimit("auditEndpoint", 60);
-    $local:rev.SetRateLimit("viewReport", 120);
-    $local:rev.SetRateLimit("loginReport", 10);
 
     if (-not $ReturnOnly) {
         Set-RevClient $local:rev;
@@ -1226,6 +1227,8 @@ function Get-InternalRevResultSet {
         [Parameter()] [ValidateSet("Continue", "Ignore", "Stop")] [string] $ScrollExpireAction = "Continue",
         [Parameter()] [Alias("First")] [int32] $MaxResults = [int32]::MaxValue,
         [Parameter()] [string] $RateLimitKey,
+        # return raw http response object instead of body
+        [Parameter()] [Switch] $Raw,
         [Parameter()] [RevClient] $Client = (Get-RevClient)
     )
     begin {
@@ -1235,6 +1238,8 @@ function Get-InternalRevResultSet {
         $params.Body = $Body.Clone();
         $params.Client = $Client;
         $params.RequestArgs = $RequestArgs;
+        $params.Raw = $Raw;
+        $params.RateLimitKey = $RateLimitKey;
 
         $Current = 0;
         $Total = $MaxResults;
@@ -1274,13 +1279,13 @@ function Get-InternalRevResultSet {
             if ($ShowProgress) {
                 $pct = switch ($Current) {
                     0 { 0; break; }
-                    $Total { 100; break; }
                     { $Total -eq 0 } { 50; break; }
+                    { $_ -ge $Total } { 100; break; }
                     default {
                         100 * $Current / $Total;
                     }
                 }
-                Write-Progress -Activity $Activity -PercentComplete $pct;
+                Write-Progress -Activity $Activity -Status "$Current / $Total (page = $($hits.Count))" -PercentComplete $pct;
             }
 
             $hits;
@@ -2166,7 +2171,7 @@ function Wait-RevTranscode
         }
     }
     end {
-        $timeoutDate = (get-date) + [timespan]::FromSeconds($TimeoutSec);
+        $timeoutDate = [datetime]::UtcNow + [timespan]::FromSeconds($TimeoutSec);
 
         # prepare stats object for tracking progress
         $stats = @{};
@@ -2225,7 +2230,7 @@ function Wait-RevTranscode
 
         # loop until timeout
         try {
-            while ((Get-Date) -lt $timeoutDate) {
+            while ([datetime]::UtcNow -lt $timeoutDate) {
                 $completedVids = $idsToProcess | where-object {
                     $currentId = $_;
                     $videoData = $stats.$currentId;

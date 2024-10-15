@@ -3,7 +3,7 @@
     VBrick Rev Client - Additional Cmdlets
 .DESCRIPTION
     VBrick Rev Client
-    Built 2024-07-16
+    Built 2024-10-07
     DISCLAIMER:
         This script is not an officially supported Vbrick product, and is provided AS-IS.
 
@@ -813,7 +813,7 @@ function Get-RevAuditData ()
         [Parameter()]
         [RevMetadataAttribute()]
         [datetime]
-        $ToDate = [datetime]::now,
+        $ToDate = [datetime]::UtcNow,
 
         # Account ID of Rev account. If not specified then automatically get from Rev Client
         [Parameter(ValueFromPipelineByPropertyName)]
@@ -839,8 +839,6 @@ function Get-RevAuditData ()
         [hashtable]
         $RequestArgs = @{},
 
-        [Parameter()] [RevRateLimiter] $RateLimiter,
-
         # The Rev Client instance to use. If not defined use default one for this session
         [Parameter()]
         [RevClient]
@@ -856,7 +854,6 @@ function Get-RevAuditData ()
 
     $TypeCamelCase = $Type.Substring(0, 1).ToLower() + $Type.Substring(1)
     $Params.Endpoint = "/network/audit/accounts/$accountId/$TypeCamelCase";
-    $Params.RequestArgs.Raw = $true;
 
     # convert csv response into standard object format
     $Params.TransformResponse = {
@@ -879,7 +876,7 @@ function Get-RevAuditData ()
         }
     };
 
-    Get-InternalRevResultSet -Method Get -TotalKey "total" -HitsKey "entries" -Activity "Getting Audit Records..." -ScrollParameterName "nextContinuationToken" @params -Client $Client -RateLimiter $RateLimiter;
+    Get-InternalRevResultSet -Method Get -TotalKey "total" -HitsKey "entries" -Activity "Getting Audit Records..." -ScrollParameterName "nextContinuationToken" -Raw @params -Client $Client -RateLimitKey "auditEndpoint";
 }
 function Update-RevCategory
 {
@@ -5304,8 +5301,6 @@ function Update-RevVideoDetails
         [hashtable]
         $RequestArgs = @{},
 
-        [Parameter()] [RevRateLimiter] $RateLimiter,
-
         # The Rev Client instance to use. If not defined use default one for this session
         [Parameter()]
         [RevClient]
@@ -5315,11 +5310,7 @@ function Update-RevVideoDetails
         # Parses arguments with the RevMetadataAttribute set, which populates body based on input
     $params = [RevMetadataAttribute]::PopulatePayload($PSCmdlet.MyInvocation)
 
-    if ($RateLimiter) {
-        $RateLimiter.Wait();
-    }
-
-    Invoke-Rev -Method Put -Endpoint "/api/v2/videos/$VideoId" @params -Client $Client
+    Invoke-Rev -Method Put -Endpoint "/api/v2/videos/$VideoId" @params -Client $Client -RateLimitKey "updateVideo"
 }
 
 function Update-RevVideoRating
@@ -7583,10 +7574,6 @@ function Get-RevWebcastAttendeesRealtime
         [hashtable]
         $RequestArgs = @{},
 
-        [Parameter()]
-        [RevRateLimiter]
-        $RateLimiter,
-
         # The Rev Client instance to use. If not defined use default one for this session
         [Parameter()]
         [RevClient]
@@ -7596,7 +7583,7 @@ function Get-RevWebcastAttendeesRealtime
         # Parses arguments with the RevMetadataAttribute set, which populates body based on input
     $params = [RevMetadataAttribute]::PopulatePayload($PSCmdlet.MyInvocation)
 
-    Get-InternalRevResultSet -Method Post -Endpoint "/api/v2/scheduled-events/$EventId/real-time/attendees" -TotalKey "total" -HitsKey "attendees" -Activity "Getting Attendees..." @params -Client $Client -RateLimiter $RateLimiter;
+    Get-InternalRevResultSet -Method Post -Endpoint "/api/v2/scheduled-events/$EventId/real-time/attendees" -TotalKey "total" -HitsKey "attendees" -Activity "Getting Attendees..." @params -Client $Client -RateLimitKey "attendeesRealtime";
 }
 
 function Get-RevWebcastAttendees
@@ -7672,7 +7659,7 @@ function Get-RevWebcastAttendees
         # Parses arguments with the RevMetadataAttribute set, which populates body based on input
     $params = [RevMetadataAttribute]::PopulatePayload($PSCmdlet.MyInvocation)
 
-    Get-InternalRevResultSet -Method Get -Endpoint "/api/v2/scheduled-events/$eventId/post-event-report" -TotalKey "totalSessions" -HitsKey "sessions" -Activity "Getting Entities..." @params -Client $Client;
+    Get-InternalRevResultSet -Method Get -Endpoint "/api/v2/scheduled-events/$eventId/post-event-report" -TotalKey "totalSessions" -HitsKey "sessions" -Activity "Getting Entities..." -RateLimitKey "viewReport" @params -Client $Client;
 }
 
 function New-RevWebcastAnswer
