@@ -998,7 +998,7 @@
           "Videos"
         ],
         "summary": "Edit a Video",
-        "description": "This endpoint allows you to edit and replace a video based on a list of supplied clips.  Each clip (an object within clips) defines start and end times within the video. The end result is a new video concatenating the clips (from the original video). This endpoint replaces the <a href=/reference/trimvideo>trim video</a> API which is now deprecated as a result.</br>",
+        "description": "This endpoint allows you to edit and replace a specified video based on a list of supplied clips. Each clip is defined by the start and end parameters and applied to the videoId you specify. Multiple clips can be defined.<br><br>Be aware that this is a destructive process and you may wish to create a copy of the original video <em>before</em> applying changes with this endpoint. Meaning, the end result is a <em>new</em> video with the same videoId combined from all the concatenated video clips from the original video. Any video not acessible is ignored in the concatenation process.<br><br>Note that if you edit a video that has transcripts, those trascripts may be out of sync with the video and will need to be regenerated.<br><br>This endpoint replaces the <a href=/reference/trimvideo>trim video</a> API which is now deprecated as a result.</br>",
         "operationId": "editVideo",
         "parameters": [
           {
@@ -3092,7 +3092,7 @@
           {
             "name": "owners",
             "in": "query",
-            "description": "Include the first name and last name of the owner.  Note that partial matches may be returned. Example: owners=\"john doe\" is going to retrieve all videos owned by the user with first name and last name = \"john doe\". To return an exact result you must use the ownerIds query string.",
+            "description": "Retrieve videos owned by users by searching with the username as the search criterion. Example: <code>owners=johndoe,janedoe</code>",
             "schema": {
               "type": "string"
             }
@@ -12641,6 +12641,10 @@
           },
           "enableAutoShowChapterImages": {
             "type": "boolean"
+          },
+          "sensitiveContent": {
+            "type": "boolean",
+            "description": "This will prevent sensitive content from being indexed in Elastic Search."
           }
         }
       },
@@ -12980,6 +12984,10 @@
           "enableAutoShowChapterImages": {
             "type": "boolean",
             "description": "When chapter images exist, the video playback can be enabled to show or hide the images by default."
+          },
+          "sensitiveContent": {
+            "type": "boolean",
+            "description": "This will prevent sensitive content from being indexed in Elastic Search."
           }
         }
       },
@@ -13967,14 +13975,6 @@
               "nl",
               "it"
             ]
-          },
-          "serviceType": {
-            "type": "string",
-            "description": "Vbrick, Voicebase, or null. If both are enabled, then Vbrick is used. If type = Vbrick, only Rev IQ user role can use this service/endpoint. This applies only if serviceType is Vbrick.",
-            "enum": [
-              "Vbrick",
-              "VoiceBase"
-            ]
           }
         }
       },
@@ -13998,7 +13998,6 @@
             "description": "Type of transcription service to use by Rev for the video transcription.",
             "enum": [
               "Manual",
-              "VoiceBase",
               "Vbrick"
             ]
           }
@@ -14203,6 +14202,10 @@
           "legacyViewCount": {
             "type": "integer",
             "description": "Retain the total views count from an outside system as an optional param."
+          },
+          "sensitiveContent": {
+            "type": "boolean",
+            "description": "This will prevent sensitive content from being indexed in Elastic Search."
           }
         }
       },
@@ -14493,6 +14496,11 @@
                 }
               }
             }
+          },
+          "sensitiveContent": {
+            "type": "boolean",
+            "description": "This will prevent sensitive content from being indexed in Elastic Search.",
+            "default": false
           }
         }
       },
@@ -16898,11 +16906,15 @@
         "properties": {
           "start": {
             "type": "string",
-            "description": "Start time of the video clip in timespan format (e.g. <code>00:00:00</code>). Minutes and seconds should be from 0-59."
+            "description": "Start time of the video clip in timespan format (e.g. <code>00:00:00.000</code>) with hours, minutes, seconds, and optional milliseconds. Minutes and seconds should be from 0-59, and milliseconds have three digits."
           },
           "end": {
             "type": "string",
-            "description": "End time of the video clip in timespan format (e.g. <code>00:00:00</code>). Minutes and seconds should be from 0-59."
+            "description": "End time of the video clip in timespan format (e.g. <code>00:00:00.000</code>) with hours, minutes, seconds, and optional milliseconds. Minutes and seconds should be from 0-59, and milliseconds have three digits."
+          },
+          "videoId": {
+            "type": "string",
+            "description": "ID of the video within the system. The video must be accessible and editable to the account used for API authorization. If the video ID matches the video ID in the API call then leave blank or null, otherwise the video ID is required."
           }
         }
       },
@@ -18466,7 +18478,9 @@
               "VodAnalyst",
               "EventAnalyst",
               "RevIqUser",
-              "ChannelCreator"
+              "ChannelCreator",
+              "MediaUploader",
+              "InternalMediaUploader"
             ]
           }
         }
@@ -18904,6 +18918,11 @@
           },
           "linkedUrl": {
             "$ref": "#/components/schemas/linkedUrlMetadata"
+          },
+          "sensitiveContent": {
+            "type": "boolean",
+            "description": "This will prevent sensitive content from being indexed in Elastic Search.",
+            "default": false
           }
         }
       },
@@ -18949,6 +18968,7 @@
         "enum": [
           "Admin",
           "Contributor",
+          "Uploader",
           "Member"
         ]
       },
@@ -19513,7 +19533,7 @@
           },
           "roleTypes": {
             "type": "array",
-            "description": "Indicates if a user or group is a Channel Administrator, Channel Contributor or Channel Member.",
+            "description": "Indicates if a user or group is a Channel Administrator, Channel Contributor, or Channel Member.",
             "items": {
               "$ref": "#/components/schemas/channelRoleType"
             }
@@ -20330,9 +20350,6 @@
             "type": "boolean"
           },
           "facialRecognitionEnabled": {
-            "type": "boolean"
-          },
-          "voiceBaseEnabled": {
             "type": "boolean"
           },
           "legalHoldEnabled": {
