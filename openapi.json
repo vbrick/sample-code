@@ -1361,6 +1361,54 @@
         }
       }
     },
+    "/api/v2/videos/{videoId}/thumbnail-config": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Thumbnail Configuration",
+        "description": "The thumbnail sheet is returned as a grid view. Each thumbnail is indexed from left to right, then top to bottom.",
+        "operationId": "getVideoThumbnailConfig",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of video for thumbnail configuration retrieval",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/videoThumbnailConfiguration"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/uploads/videos/{videoId}": {
       "put": {
         "tags": [
@@ -3076,7 +3124,7 @@
           {
             "name": "uploaders",
             "in": "query",
-            "description": "Include the first name and last name of the uploader.  Note that partial matches may be returned. Example: uploaders=\"john doe\" is going to retrieve all videos uploaded by the user with first name and last name = \"john doe\". To return an exact result you must use the uploaderIds query string.",
+            "description": "Use the first and last name of the uploader or an exact match of the uploader's username. Note that partial matches may still be returned. For example, uploaders=\"john doe\" will retrieve all videos uploaded by a user with the first and last name \"john doe\". To return an exact match, you must use the uploaderIds query string.",
             "schema": {
               "type": "string"
             }
@@ -3271,6 +3319,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "accessControl",
+            "in": "query",
+            "description": "If provided, videos will be filtered by access control.",
+            "schema": {
+              "$ref": "#/components/schemas/videoAccessControl"
+            }
           }
         ],
         "responses": {
@@ -3382,6 +3438,73 @@
           }
         },
         "x-codegen-request-body-name": "metadata"
+      }
+    },
+    "/api/v2/videos/deleted": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Deleted Videos",
+        "description": "Returns a list of videos which were deleted, made inactive, or made inaccessible to all users in the last 30 days.",
+        "operationId": "getDeletedVideos",
+        "x-sdk-method-name": "getDeletedVideos",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "description": "Date from which videos were deleted.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "description": "Date to which videos were deleted. Default to now.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "Filter by deleted video state.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Deleted",
+                "ChangedToPrivate",
+                "ChangedToInactive"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/searchDeletedVideosResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
       }
     },
     "/api/v2/videos/{videoId}/download": {
@@ -6463,6 +6586,298 @@
           },
           "400": {
             "description": "Invalid scroll id error",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/comments/{commentId}/hide": {
+      "put": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Hide Webcast Comment",
+        "description": "Hide specific comment for a specified webcast.",
+        "operationId": "hideWebcastComment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "Id of the comment",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runNumber",
+            "in": "query",
+            "description": "The current run of the referred event. Defaults to Main Event runNumber(0). Should be passed for pre-production.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {}
+          },
+          "400": {
+            "description": "Invalid event or comment or event not in progress",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
+	  "delete": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Unhide Webcast Comment",
+        "description": "Unhide specific comment for a specified webcast.",
+        "operationId": "unhideWebcastComment",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "Id of the comment",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runNumber",
+            "in": "query",
+            "description": "The current run of the referred event. Defaults to Main Event runNumber(0). Should be passed for pre-production.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {}
+          },
+          "400": {
+            "description": "Invalid event or comment or event not in progress",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/reactions": {
+      "get": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Get Webcast User Reactions Summary Report",
+        "description": "Get user reactions to a specified webcast event.",
+        "operationId": "getEventReactions",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the event to get Reactions report",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runNumber",
+            "in": "query",
+            "description": "The current run of the referred event. Defaults to Main Event runNumber(0). Should be passed for pre-production.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/reactionsSummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/scheduled-events/{eventId}/users/{userId}/mute": {
+      "put": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Mute Webcast Attendee",
+        "description": "Mute attendee for a specified webcast.",
+        "operationId": "muteWebcastAttendee",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Id of the user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runNumber",
+            "in": "query",
+            "description": "The current run of the referred event. Defaults to Main Event runNumber(0). Should be passed for pre-production.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {}
+          },
+          "400": {
+            "description": "Invalid event or user or event not in progress",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      },
+	  "delete": {
+        "tags": [
+          "Webcasts"
+        ],
+        "summary": "Unmute Webcast Attendee",
+        "description": "Unmute attendee for a specified webcast.",
+        "operationId": "unmuteWebcastAttendee",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "description": "Id of the webcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Id of the user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "runNumber",
+            "in": "query",
+            "description": "The current run of the referred event. Defaults to Main Event runNumber(0). Should be passed for pre-production.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response.",
+            "content": {}
+          },
+          "400": {
+            "description": "Invalid event or user or event not in progress",
             "content": {}
           },
           "401": {
@@ -9918,6 +10333,64 @@
         }
       }
     },
+    "/api/v2/uploads/channel-logo/{channelId}": {
+      "post": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Upload Channel Logo Image",
+        "description": "Upload logo image file for a channel.",
+        "operationId": "uploadChannelLogoFile",
+        "x-sdk-method-name": "uploadChannelLogoImage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "channelId",
+            "in": "path",
+            "description": "Id of the channel to upload image",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "ImageFile"
+                ],
+                "properties": {
+                  "ImageFile": {
+                    "type": "string",
+                    "description": "Channel image file. View <a href=/docs/supported-file-types>Supported File Types</a> in Technical Requirements guide for accepted image types.<p>Please provide Content-Type header for the uploaded files.</p>",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
     "/api/v2/categories": {
       "get": {
         "tags": [
@@ -12299,6 +12772,49 @@
           "PendingApproval",
           "Rejected"
         ]
+      },
+      "videoThumbnailConfiguration": {
+        "type": "object",
+        "properties": {
+          "thumbnailCfg": {
+            "type": "object",
+            "description": "Thumbnail sheet configuration.",
+            "properties": {
+              "horizontalTiles": {
+                "description": "Total number of horizontal tiles making up the thumbsheet.",
+                "type": "integer"
+              },
+              "verticalTiles": {
+                "description": "Total number of vertical tiles making up the thumbsheet.",
+                "type": "integer"
+              },
+              "spf": {
+                "description": "Seconds per frame.",
+                "type": "number"
+              },
+              "totalThumbnails": {
+                "description": "Total number of thumbnails contained in the sheet.",
+                "type": "integer"
+              },
+              "sheetWidth": {
+                "description": "Thumbnail sheet width in pixels.",
+                "type": "integer"
+              },
+              "sheetHeight": {
+                "description": "Thumbnail sheet height in pixels.",
+                "type": "integer"
+              },
+              "thumbnailSheetsUri": {
+                "description": "Uri to thumbnail sheet instance.",
+                "type": "string"
+              },
+              "numSheets": {
+                "description": "Number of thumbnail sheets.",
+                "type": "integer"
+              }
+            }
+          }
+        }
       },
       "videoSummaryStats": {
         "type": "object",
@@ -15857,6 +16373,9 @@
               "$ref": "#/components/schemas/producerBgImage"
             },
             "nullable": true
+          },
+          "reactionsSettings": {
+            "$ref": "#/components/schemas/reactionsSettings"
           }
         }
       },
@@ -16171,6 +16690,12 @@
       "eventComment": {
         "type": "object",
         "properties": {
+          "commentId": {
+                    "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
           "username": {
             "type": "string"
           },
@@ -16183,6 +16708,9 @@
           },
           "htmlComment": {
             "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
           }
         }
       },
@@ -16659,8 +17187,8 @@
               "banners": {
                 "type": "array",
                 "items": {
-                    "$ref": "#/components/schemas/banner"
-                  }
+                  "$ref": "#/components/schemas/banner"
+                }
               }
             }
           },
@@ -16675,6 +17203,9 @@
             "items": {
               "$ref": "#/components/schemas/eventExternalPresenter"
             }
+          },
+          "reactionsSettings": {
+            "$ref": "#/components/schemas/reactionsSettings"
           }
         }
       },
@@ -17276,6 +17807,9 @@
             "items": {
               "$ref": "#/components/schemas/customFieldRequest"
             }
+          },
+          "reactionsSettings": {
+            "$ref": "#/components/schemas/reactionsSettings"
           }
         }
       },
@@ -17393,9 +17927,68 @@
                   "items": {
                     "$ref": "#/components/schemas/eventExternalPresenter"
                   }
+                },
+                "reactionsSettings": {
+                  "$ref": "#/components/schemas/reactionsSettings"
                 }
               }
             }
+          }
+        }
+      },
+      "reactionsSettings": {
+        "type": "object",
+        "description": "Describes the configuration of Live Emoji Reactions for the event.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Default=false. When true, the Live Emoji Reactions feature is enabled for the event.",
+            "default": false
+          },
+          "emojis": {
+            "type": "array",
+            "description": "List of emojis available for the event.  If omitted or left empty the emojis will default to the standard set.",
+            "items": {
+              "$ref": "#/components/schemas/emoji"
+            }
+          }
+        }
+      },
+      "emoji": {
+        "type": "object",
+        "description": "Describes an emoji characacter.",
+        "properties": {
+          "character": {
+            "type": "string",
+            "description": "The unicode representation of the emoji character."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the emoji."
+          }
+        }
+      },
+      "reactionsSummary": {
+        "type": "object",
+        "description": "Describes the Reactions Summary Report.",
+        "properties": {
+          "webcastDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date and time the reaction was recorded.",
+            "default": false
+          },
+          "reaction": {
+            "type": "string",
+            "description": "The emoji character."
+          },
+          "unicode": {
+            "type": "string",
+            "description": "The unicode representation of the emoji character."
+          },
+          "count": {
+            "type": "integer",
+            "description": "The number of emojis sent."
           }
         }
       },
@@ -18087,6 +18680,29 @@
           }
         }
       },
+      "searchDeletedVideosResponse": {
+        "type": "object",
+        "properties": {
+          "deletedVideos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/searchDeletedVideoItem"
+            }
+          },
+          "totalVideos": {
+            "type": "integer"
+          },
+          "scrollId": {
+            "type": "string"
+          },
+          "statusCode": {
+            "type": "integer"
+          },
+          "statusDescription": {
+            "type": "string"
+          }
+        }
+      },
       "videoReportResponse": {
         "type": "object",
         "properties": {
@@ -18101,6 +18717,24 @@
           },
           "scrollId": {
             "type": "string"
+          }
+        }
+      },
+      "searchDeletedVideoItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "when": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
