@@ -228,7 +228,7 @@ class RevClient {
         return $this.Username -and $this.Password;
     }
     [bool] IsConnected() {
-        return $this.Token -and ($this:Expiration - [datetime]::UtcNow).TotalMinutes -lt 1;
+        return $this.Token -and ($this.Expiration - [datetime]::UtcNow).TotalMinutes -ge 1;
     }
     static [bool] IsAuthEndpoint([string] $Endpoint) {
         return $Endpoint -match '(v\d/authenticate|v\d/tokens)|extend-session|user/(login|logoff|session)';
@@ -346,7 +346,12 @@ class RevClient {
         } elseif ($null -ne $Body) {
             # convert to json string if needed
             if ($Body -isnot [string] -and $Method -ne [Microsoft.PowerShell.Commands.WebRequestMethod]::Get) {
-                $Body = $Body | ConvertTo-Json -Depth 100;
+                # make sure json arrays stay as arrays if possible
+                if ($isModern -and $body -is [System.Collections.IList]) {
+                    $Body = $Body | ConvertTo-Json -Depth 100 -AsArray;
+                } else {
+                    $Body = $Body | ConvertTo-Json -Depth 100;
+                }
             }
             $request.Body = $Body;
         }
@@ -2416,7 +2421,7 @@ function Edit-RevVideoDetails
         # Refer to http://jsonpatch.com/ for the format of the request body. (ex: [{ op="replace", path="/Title", value="new value" }])
         [Parameter(Mandatory)]
         [RevMetadataAttribute(PayloadName="Body", IsPassthru)]
-        [object[]]
+        [object]
         $Operations,
         # Extra arguments to pass to Invoke-WebRequest
         [Parameter()]
@@ -2429,7 +2434,6 @@ function Edit-RevVideoDetails
         [RevClient]
         $Client = (Get-RevClient)
     )
-
         # Parses arguments with the RevMetadataAttribute set, which populates body based on input
     $params = [RevMetadataAttribute]::PopulatePayload($PSCmdlet.MyInvocation)
 
@@ -2522,6 +2526,18 @@ function Edit-RevVideoMigration
         [RevMetadataAttribute()]
         [string]
         $PublishDate,
+
+        # Retain the total views count from an outside system as an optional param.
+        [Parameter()]
+        [RevMetadataAttribute()]
+        [int64]
+        $LegacyViewCount,
+
+        # This will prevent sensitive content from being indexed in Elastic Search.
+        [Parameter()]
+        [RevMetadataAttribute()]
+        [switch]
+        $SensitiveContent,
 
         # Extra arguments to pass to Invoke-WebRequest
         [Parameter()]
