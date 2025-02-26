@@ -799,6 +799,7 @@
         "summary": "Update Video Details/Metadata",
         "description": "This endpoint is used to set or modify all metadata fields for a specific video. Note that if you are only changing one field (categories for example) <em>all</em> other metadata fields must also be submitted with this API call. Otherwise, those values that are not set are reset to defaults or nullified entirely.<p>To edit specific fields instead of all fields, use the <a href=/reference/editvideopatch>Patch Video Details/Metadata</a> endpoint instead.</p>",
         "operationId": "updateVideo",
+        "x-sdk-method-name": "editVideo",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -1000,6 +1001,7 @@
         "summary": "Edit a Video",
         "description": "This endpoint allows you to edit and replace a specified video based on a list of supplied clips. Each clip is defined by the start and end parameters and applied to the videoId you specify. Multiple clips can be defined.<br><br>Be aware that this is a destructive process and you may wish to create a copy of the original video <em>before</em> applying changes with this endpoint. Meaning, the end result is a <em>new</em> video with the same videoId combined from all the concatenated video clips from the original video. Any video not acessible is ignored in the concatenation process.<br><br>Note that if you edit a video that has transcripts, those trascripts may be out of sync with the video and will need to be regenerated.<br><br>This endpoint replaces the <a href=/reference/trimvideo>trim video</a> API which is now deprecated as a result.</br>",
         "operationId": "editVideo",
+        "x-sdk-method-name": "editVideoClips",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -1303,6 +1305,7 @@
         "summary": "Get Video Summary Statistics",
         "description": "Retrieves the summary statistics of a given video and most often relates to viewing statistics such as total views, completion rate, unique views and so forth. You can specify a before and after date range or return the entire summary by leaving before and after dates blank.",
         "operationId": "getVideoSummary",
+        "x-sdk-method-name": "getVideoSummaryStatistics",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -1662,6 +1665,56 @@
         }
       }
     },
+    "/api/v2/videos/{videoId}/thumbnail-sheets/{sheetIndex}": {
+      "get": {
+        "tags": [
+          "Videos"
+        ],
+        "summary": "Get Video Thumbnail Sheet",
+        "description": "Gets a video thumbnail sheet for a given video.",
+        "operationId": "downloadThumbnailSheetFile",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "videoId",
+            "in": "path",
+            "description": "Id of the video.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sheetIndex",
+            "in": "path",
+            "description": "Index of the thumbnail sheet starting with 1.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/api/v2/videos/{videoId}/generate-metadata": {
       "put": {
         "tags": [
@@ -1752,6 +1805,7 @@
         "summary": "Upload Video Chapters",
         "description": "This endpoint uploads a chapter(s) for a specified video. Posting chapters replaces <em>all</em> existing chapters a video contains. There can be multiple chapter titles and start times. The endpoint requires the user have edit rights to the video.",
         "operationId": "uploadvideoChapters",
+        "x-sdk-method-name": "uploadVideoChapters",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -2314,6 +2368,7 @@
         "summary": "Upload Webcast Branding",
         "description": "This endpoint uploads and updates a webcast branding settings for a specified webcast. <p>The endpoint requires the user have edit rights to the webcast.</p>",
         "operationId": "uploadWebcastBranding",
+        "x-sdk-method-name": "uploadEventBranding",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -2491,6 +2546,7 @@
         "tags": [
           "Videos"
         ],
+        "deprecated": true,
         "summary": "Update Video Comments",
         "description": "This endpoint is used to submit a comment on a specified video. The username that submits the comment must exist in Rev.<p>This endpoint will be deprecated in favor of the <a href=/reference/addcomments>Add Video Comments</a> endpoint.</p>",
         "operationId": "submitComments",
@@ -4958,6 +5014,7 @@
         "summary": "Get Video Unique Sessions Report",
         "description": "This endpoint returns detailed viewing information for a video. It is limited to one session per user within a given time range. It reports the individual viewing session with the maximum viewing time for each user who watched the video, and whether or not each user completed the video. Up to 500 responses can be generated with supported scrolling. Guest user sessions are only reported for authenticated guests.",
         "operationId": "uniqueVideoSessionsReport",
+        "x-sdk-method-name": "getUniqueSessionsReport",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -5445,6 +5502,15 @@
           },
           {
             "$ref": "#/components/parameters/sortDirection"
+          },
+          {
+            "name": "isFeatured",
+            "in": "query",
+            "description": "When the search term is provided, a value of true retrieves all events marked as featured, while a value of false retrieves all events that are not featured. If the search term is omitted, all events are returned.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -5854,6 +5920,7 @@
         ],
         "summary": "Get Public Webcast Status",
         "description": "Returns true if the webcast is Public or an unauthorized HTTP Status Code if it is Private for security reasons.",
+        "operationId": "verifyEventPublic",
         "parameters": [
           {
             "name": "eventId",
@@ -8007,7 +8074,6 @@
         "summary": "Get Push Links for a Webcast (Deprecated)",
         "description": "This is a deprecated endpoint. Use <a href=/reference/getwebcastbanners>Get Banners for a Webcast</a> instead.",
         "operationId": "getWebcastPushContentLinks",
-        "x-sdk-method-name": "getPushContentLinks",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -8440,7 +8506,7 @@
         "summary": "Update Banner for a Webcast",
         "description": "Updates previously created banner for a Webcast. You must specify both the webcast and the banner Id.",
         "operationId": "updateBanner",
-        "x-sdk-method-name": "updateBanner",
+        "x-sdk-method-name": "editWebcastBanner",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -8903,7 +8969,7 @@
         "summary": "Patch User",
         "description": "Partially edits the details of a user. You do not need to provide the user fields that are not changing.<p><strong>Note:</strong> If the account is an LDAP user, only Roles, Groups, and Preferred Language may be updated.</p>",
         "operationId": "editUserDetails",
-        "x-sdk-method-name": "editUser",
+        "x-sdk-method-name": "patchUser",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -8915,19 +8981,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "type",
-            "in": "query",
-            "description": "Indicates the context of the value provided in the request path ':userId'. If a value of 'username' or 'email' is provided, the user is retrieved using the 'Username' or 'Email' property instead of User ID.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "username",
-                "email"
-              ]
             }
           }
         ],
@@ -9618,12 +9671,13 @@
         ],
         "x-sdk-tags": [
           "Users",
-          "Groups"
+          "Groups",
+          "Channels"
         ],
         "summary": "Search assignable Users, Groups and Channels",
         "description": "Searches the specified access entity (user/group/channel) in Rev for a specified query string that the current user is able to assign. If no entity is specified, then all types are searched.",
         "operationId": "searchAccessEntityAssignable",
-        "x-sdk-method-name": "search",
+        "x-sdk-method-name": "searchAssignable",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -12952,7 +13006,8 @@
             "type": "string"
           },
           "thumbnailKey": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "thumbnailUrl": {
             "type": "string"
@@ -12995,6 +13050,7 @@
           },
           "password": {
             "type": "string",
+            "nullable": true,
             "description": "This is a shared password for public guests. This field exists only in the response if the user has EDIT permission to the video."
           },
           "status": {
@@ -13020,11 +13076,17 @@
           },
           "expirationDate": {
             "type": "string",
+            "nullable": true,
             "format": "date"
           },
           "expirationAction": {
             "type": "string",
-            "description": "This sets action when video expires. This is an enum and can have the following values: Delete/Inactivate."
+            "nullable": true,
+            "description": "This sets action when video expires. This is an enum and can have the following values: Delete/Inactivate.",
+            "enum": [
+              "Delete",
+              "Inactivate"
+            ]
           },
           "uploadedBy": {
             "type": "string"
@@ -13040,6 +13102,7 @@
           },
           "publishDate": {
             "type": "string",
+            "nullable": true,
             "format": "date"
           },
           "categoryPaths": {
@@ -13084,6 +13147,12 @@
           "hasAudioOnly": {
             "type": "boolean"
           },
+          "hasDualStreams": {
+            "type": "boolean"
+          },
+          "isConvertedToSwitched": {
+            "type": "boolean"
+          },
           "avgRating": {
             "type": "number",
             "format": "float"
@@ -13091,7 +13160,7 @@
           "ratingsCount": {
             "type": "integer"
           },
-          "commentCount": {
+          "commentsCount": {
             "type": "integer"
           },
           "whenModified": {
@@ -13099,7 +13168,8 @@
             "format": "date-time"
           },
           "duration": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "audioTracks": {
             "type": "array",
@@ -13115,6 +13185,7 @@
           },
           "videoConference": {
             "type": "object",
+            "nullable": true,
             "properties": {
               "whenRecordingStarted": {
                 "type": "string",
@@ -13124,13 +13195,15 @@
                 "type": "string"
               },
               "sipPin": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
               },
               "bitrateKbps": {
                 "type": "integer"
               },
               "microsoftTeamsMeetingUrl": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
               }
             }
           },
@@ -13180,7 +13253,7 @@
             "type": "string"
           },
           "status": {
-            "$ref": "#/components/schemas/transcriptionStatus"
+            "$ref": "#/components/schemas/audioTrackStatus"
           }
         }
       },
@@ -13192,6 +13265,12 @@
           },
           "languageId": {
             "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/audioTrackStatus"
           }
         }
       },
@@ -14155,16 +14234,20 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "phone": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "language": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "userType": {
             "type": "string",
@@ -14195,29 +14278,35 @@
           },
           "groups": {
             "type": "array",
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/entityItem"
             }
           },
           "channels": {
             "type": "array",
+            "nullable": true,
             "items": {
               "$ref": "#/components/schemas/entityItem"
             }
           },
           "profileImageUri": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "canUpload": {
             "type": "boolean",
-            "description": "DEPRECATED"
+            "description": "DEPRECATED",
+            "deprecated": true
           },
           "canCreateEvents": {
             "type": "boolean",
-            "description": "DEPRECATED"
+            "description": "DEPRECATED",
+            "deprecated": true
           },
           "permissions": {
             "type": "object",
+            "nullable": false,
             "properties": {
               "canUpload": {
                 "type": "boolean"
@@ -14324,6 +14413,7 @@
           },
           "roles": {
             "type": "array",
+            "nullable": false,
             "items": {
               "type": "object",
               "properties": {
@@ -14457,6 +14547,18 @@
             "format": "date-time"
           }
         }
+      },
+      "audioTrackStatus": {
+        "type": "string",
+        "enum": [
+          "Ready",
+          "Pending",
+          "Processing",
+          "Adding",
+          "Updating",
+          "Deleting",
+          "AddingFailed"
+        ]
       },
       "transcriptionStatus": {
         "type": "string",
@@ -16116,7 +16218,8 @@
             }
           },
           "primaryHostId": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "automatedWebcast": {
             "type": "boolean",
@@ -16170,7 +16273,8 @@
             }
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "accessControl": {
             "$ref": "#/components/schemas/eventAccessControl"
@@ -16236,13 +16340,16 @@
             "$ref": "#/components/schemas/eventPreProduction"
           },
           "shortcutName": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "shortcutNameUrl": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "linkedVideoId": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "autoAssociateVod": {
             "type": "boolean"
@@ -16376,6 +16483,10 @@
           },
           "reactionsSettings": {
             "$ref": "#/components/schemas/reactionsSettings"
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "If enabled by admins on the branding page, featured events will show on the home page carousel to viewers with permission. Featured events will not show in the featured carousel once the event has ended."
           }
         }
       },
@@ -16436,6 +16547,9 @@
               },
               "isEnabled": {
                 "type": "boolean"
+              },
+              "resourceUri": {
+                "type": "string"
               }
             }
           },
@@ -16457,9 +16571,9 @@
           },
           "icon": {
             "type": "string",
-            "description": "Icon that is assigned to the flyout tab and is clicked to open. Accepted values: abc-text, barchart, group-2, group-3, person-check, person-record, person-wave, poll-chart, end, smile-face, vote-box",
+            "description": "Icon that is assigned to the flyout tab and is clicked to open. Accepted values: ballot, barchart, group-2, group-3, person-check, person-record, person-wave, poll-chart, psychology, send, smile-face, vote-box",
             "enum": [
-              "abc-text",
+              "ballot",
               "barchart",
               "group-2",
               "group-3",
@@ -16467,27 +16581,13 @@
               "person-record",
               "person-wave",
               "poll-chart",
-              "end",
+              "psychology",
+              "send",
               "smile-face",
               "vote-box"
             ]
           }
         }
-      },
-      "embeddedContentLinkDetail": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/embeddedContentLink"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "resourceUri": {
-                "type": "string"
-              }
-            }
-          }
-        ]
       },
       "setEnabledRequest": {
         "type": "object",
@@ -16745,16 +16845,19 @@
             ]
           },
           "slideUrl": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "isPreProduction": {
             "type": "boolean"
           },
           "sbmlResponse": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -16910,6 +17013,7 @@
           "eventAdminEmails": {
             "type": "array",
             "description": "DEPRECATED",
+            "deprecated": true,
             "items": {
               "type": "string"
             }
@@ -17206,6 +17310,10 @@
           },
           "reactionsSettings": {
             "$ref": "#/components/schemas/reactionsSettings"
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "Default=false. If enabled by admins on the branding page, featured events will show on the home page carousel to viewers with permission. Featured events will not show in the featured carousel once the event has ended."
           }
         }
       },
@@ -17452,6 +17560,7 @@
       "videoTrimRequest": {
         "type": "object",
         "description": "DEPRECATED",
+        "deprecated": true,
         "properties": {
           "removedSegments": {
             "type": "array",
@@ -17464,6 +17573,7 @@
       "videoTrimRange": {
         "type": "object",
         "description": "DEPRECATED",
+        "deprecated": true,
         "properties": {
           "start": {
             "type": "string",
@@ -17769,6 +17879,10 @@
             "items": {
               "$ref": "#/components/schemas/eventExternalPresenter"
             }
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "If enabled by admins on the branding page, featured events will show on the home page carousel to viewers with permission. Featured events will not show in the featured carousel once the event has ended."
           }
         }
       },
@@ -17808,8 +17922,9 @@
               "$ref": "#/components/schemas/customFieldRequest"
             }
           },
-          "reactionsSettings": {
-            "$ref": "#/components/schemas/reactionsSettings"
+          "isFeatured": {
+            "type": "boolean",
+            "description": "An optional search term boolean value (true or false) indicating whether to include or exclude events tagged as featured."
           }
         }
       },
@@ -17975,8 +18090,7 @@
           "webcastDate": {
             "type": "string",
             "format": "date-time",
-            "description": "Date and time the reaction was recorded.",
-            "default": false
+            "description": "Date and time the reaction was recorded."
           },
           "reaction": {
             "type": "string",
@@ -18676,7 +18790,8 @@
             "type": "integer"
           },
           "statusDescription": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -18699,7 +18814,8 @@
             "type": "integer"
           },
           "statusDescription": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -18748,6 +18864,9 @@
             "type": "string"
           },
           "description": {
+            "type": "string"
+          },
+          "htmlDescription": {
             "type": "string"
           },
           "categories": {
@@ -18841,6 +18960,18 @@
           },
           "hasHls": {
             "type": "boolean"
+          },
+          "hasAudioOnly": {
+            "type": "boolean"
+          },
+          "hasDualStreams": {
+            "type": "boolean"
+          },
+          "isConvertedToSwitched": {
+            "type": "boolean"
+          },
+          "sourceType": {
+            "type": "string"
           },
           "thumbnailSheets": {
             "type": "string"
@@ -19119,29 +19250,75 @@
           }
         }
       },
-      "searchAccessEntityItem": {
+      "searchUserItem": {
         "type": "object",
         "properties": {
           "UserName": {
             "type": "string"
           },
           "FirstName": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "LastName": {
             "type": "string"
           },
           "Email": {
+            "type": "string",
+            "nullable": true
+          },
+          "Id": {
+            "type": "string"
+          },
+          "EntityType": {
+            "$ref": "#/components/schemas/accessEntityType"
+          },
+          "ProfileImageUri": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "searchGroupItem": {
+        "type": "object",
+        "properties": {
+          "Name": {
             "type": "string"
           },
           "Id": {
             "type": "string"
           },
           "EntityType": {
+            "$ref": "#/components/schemas/accessEntityType"
+          }
+        }
+      },
+      "searchChannelItem": {
+        "type": "object",
+        "properties": {
+          "Name": {
             "type": "string"
           },
-          "ProfileImageUri": {
+          "Id": {
             "type": "string"
+          },
+          "EntityType": {
+            "$ref": "#/components/schemas/accessEntityType"
+          }
+        }
+      },
+      "searchAccessEntityItem": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/searchUserItem" },
+          { "$ref": "#/components/schemas/searchGroupItem" },
+          { "$ref": "#/components/schemas/searchChannelItem" }
+        ],
+        "discriminator": {
+          "propertyName": "EntityType",
+          "mapping": {
+            "User": "#/components/schemas/searchUserItem",
+            "Group": "#/components/schemas/searchGroupItem",
+            "Channel": "#/components/schemas/searchChannelItem"
           }
         }
       },
@@ -19209,7 +19386,8 @@
             "type": "integer"
           },
           "statusDescription": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -19340,6 +19518,7 @@
           },
           "parentCategory": {
             "type": "object",
+            "nullable": true,
             "properties": {
               "categoryId": {
                 "type": "string"
@@ -19782,6 +19961,7 @@
           },
           "targetDevices": {
             "type": "array",
+            "description": "List of target devices to link to the zone. For the Default Zone, this is optional. However, for Non-Default Zones, at least one target device must be specified.",
             "items": {
               "$ref": "#/components/schemas/zoneTargetDevice"
             }
@@ -20305,19 +20485,6 @@
           "Dynamic"
         ]
       },
-      "whenUploaded": {
-        "type": "object",
-        "properties": {
-          "from": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "to": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "videoSearchSortField": {
         "type": "string",
         "enum": [
@@ -20471,7 +20638,8 @@
             "type": "string"
           },
           "statusDescription": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -20738,7 +20906,8 @@
                     "Transcription",
                     "Translation",
                     "UserTagging",
-                    "MetadataGeneration"
+                    "MetadataGeneration",
+                    "AudioGeneration"
                   ]
                 },
                 "Credits": {
@@ -20949,7 +21118,8 @@
             "type": "integer"
           },
           "statusDescription": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -21191,6 +21361,7 @@
           },
           "notifications": {
             "type": "array",
+            "nullable": false,
             "items": {
               "type": "object",
               "properties": {
