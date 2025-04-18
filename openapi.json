@@ -1370,7 +1370,7 @@
           "Videos"
         ],
         "summary": "Get Video Thumbnail Configuration",
-        "description": "The thumbnail sheet is returned as a grid view. Each thumbnail is indexed from left to right, then top to bottom.",
+        "description": "The <a href=/reference/downloadthumbnailsheet>Get Video Thumbnail Sheet</a> is returned as a grid view when using this endpoint. Each thumbnail is indexed from left to right, then top to bottom.",
         "operationId": "getVideoThumbnailConfig",
         "parameters": [
           {
@@ -1665,14 +1665,14 @@
         }
       }
     },
-    "/api/v2/videos/{videoId}/thumbnail-sheets/{sheetIndex}": {
+     "/api/v2/videos/{videoId}/thumbnail-sheets/{sheetIndex}": {
       "get": {
         "tags": [
           "Videos"
         ],
         "summary": "Get Video Thumbnail Sheet",
-        "description": "Gets a video thumbnail sheet for a given video.",
-        "operationId": "downloadThumbnailSheetFile",
+        "description": "This endpoint is returned when using the <a href=/reference/getvideothumbnailconfig>Get Video Thumbnail Configuration</a> endpoint. It is not intended to be used by itself. ",
+        "operationId": "downloadThumbnailSheet",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -8074,6 +8074,7 @@
         "summary": "Get Push Links for a Webcast (Deprecated)",
         "description": "This is a deprecated endpoint. Use <a href=/reference/getwebcastbanners>Get Banners for a Webcast</a> instead.",
         "operationId": "getWebcastPushContentLinks",
+        "x-sdk-method-name": "getPushContentLinks",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -8981,6 +8982,19 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Indicates the context of the value provided in the request path ':userId'. If a value of 'username' or 'email' is provided, the user is retrieved using the 'Username' or 'Email' property instead of User ID.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "username",
+                "email"
+              ]
             }
           }
         ],
@@ -10259,7 +10273,7 @@
           "Channels"
         ],
         "summary": "Patch Channel",
-        "description": "Partially edits the members and details of a channel. You do not need to provide the fields that you are not changing.<p>Please refer to http://jsonpatch.com/ for the format of the request body.</p><strong>Examples:</strong><p>To add members: [{'op': 'add',  'path': '/Members/-', 'value': {'id': '0e2a1bfc-0a36-4ee1e-ac1e-3647b256537d','type': 'Group','roleTypes': ['Member','Contributor']}} ]</p><p>To remove members : [{ 'op': 'remove',  'path': '/Members',  'value': '63a76eb9-fa62-46e0-bdb5-c8ad34aec086' }]</p><p>To update channel name : [{ 'op': 'replace', 'path': '/Name', 'value': 'New Name' }]</p>",
+        "description": "Partially edits the members and details of a channel. You do not need to provide the fields that you are not changing.<p>Please refer to http://jsonpatch.com/ for the format of the request body.</p><strong>Examples:</strong><p>To add members: [{'op': 'add',  'path': '/Members/-', 'value': {'id': '0e2a1bfc-0a36-4ee1e-ac1e-3647b256537d','type': 'Group','roleTypes': ['Member','Contributor']}} ]</p><p>To remove members : [{ 'op': 'remove',  'path': '/Members',  'value': '63a76eb9-fa62-46e0-bdb5-c8ad34aec086' }]</p><p>To update channel name : [{ 'op': 'replace', 'path': '/Name', 'value': 'New Name' }]</p><p>To update channel default sort order : [{ 'op': 'replace', 'path': '/DefaultSortOrder', 'value': 'title' }]</p>",
         "operationId": "patchChannel",
         "parameters": [
           {
@@ -10387,6 +10401,53 @@
         }
       }
     },
+    "/api/v2/channels/headerImage/{key}": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Get Channel Header Image",
+        "description": "Download channel header image.",
+        "operationId": "downloadHeaderImage",
+        "x-sdk-method-name": "downloadChannelHeaderImage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "File key of the channel header image to download.<p>This is the <b>headerKey</b> property that is returned via the <a href=/reference/getuserchannels>Get Channels For User</a> or <a href=/reference/getchannels>Get Channels</a> endpoints.</p>",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized error"
+          },
+          "404": {
+            "description": "Resource not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/api/v2/uploads/channel-logo/{channelId}": {
       "post": {
         "tags": [
@@ -10396,6 +10457,64 @@
         "description": "Upload logo image file for a channel.",
         "operationId": "uploadChannelLogoFile",
         "x-sdk-method-name": "uploadChannelLogoImage",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/authorizationParam"
+          },
+          {
+            "name": "channelId",
+            "in": "path",
+            "description": "Id of the channel to upload image",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "ImageFile"
+                ],
+                "properties": {
+                  "ImageFile": {
+                    "type": "string",
+                    "description": "Channel image file. View <a href=/docs/supported-file-types>Supported File Types</a> in Technical Requirements guide for accepted image types.<p>Please provide Content-Type header for the uploaded files.</p>",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {}
+          },
+          "401": {
+            "description": "Unauthorized error",
+            "content": {}
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/api/v2/uploads/channel-header/{channelId}": {
+      "post": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Upload Channel Header Image",
+        "description": "Upload header image file for a channel.",
+        "operationId": "uploadChannelHeaderFile",
+        "x-sdk-method-name": "uploadChannelHeadermage",
         "parameters": [
           {
             "$ref": "#/components/parameters/authorizationParam"
@@ -11375,7 +11494,7 @@
           "RevIQ"
         ],
         "summary": "Get Rev IQ Credits Usage",
-        "description": "Returns the Rev IQ credits usage. Data for both video and live events is collected. Rev IQ credits are used for transcription, translation, user tagging, and metadata generation.",
+        "description": "Returns the Rev IQ credits usage. Data for both video and live events is collected. Rev IQ credits are used for transcription, translation, user tagging, audio generation, and metadata generation.",
         "operationId": "getAccountIqCreditsUsage",
         "parameters": [
           {
@@ -13244,9 +13363,11 @@
             "type": "integer"
           },
           "isDefault": {
+            "description": "Sets the audio track as the default track. If status is `updating`, either languageId or isDefault should be different from the existing setting.",
             "type": "boolean"
           },
           "languageId": {
+            "description": "<a href=/docs/supported-languages#vod-voice-generation-language-support-for-rev-iq>Supported Language</a> code. When status is `adding`, languageId is required.<p>If status is `updating`, either languageId or isDefault should be different from the existing setting.</p>",
             "type": "string"
           },
           "languageName": {
@@ -13264,9 +13385,11 @@
             "type": "integer"
           },
           "languageId": {
+            "description": "<a href=/docs/supported-languages#vod-voice-generation-language-support-for-rev-iq>Supported Language</a> code. When status is `adding`, languageId is required.<p>If status is `updating`, either languageId or isDefault should be different from the existing setting.</p>",
             "type": "string"
           },
           "isDefault": {
+            "description": "Sets the audio track as the default track. If status is `updating`, either languageId or isDefault should be different from the existing setting.",
             "type": "boolean"
           },
           "status": {
@@ -16486,7 +16609,15 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "If enabled by admins on the branding page, featured events will show on the home page carousel to viewers with permission. Featured events will not show in the featured carousel once the event has ended."
+            "description": "If enabled by admins on the Branding page, Featured Events display on the Home page carousel to viewers with permission. Featured Events are not displayed once the event has ended."
+          },
+          "preRollVideoId": {
+            "type": "string",
+            "description": "Video Id of the Bumper video for the event."
+          },
+          "postRollVideoId": {
+            "type": "string",
+            "description": "Video Id of the Trailer video for the event."
           }
         }
       },
@@ -16588,6 +16719,21 @@
             ]
           }
         }
+      },
+      "embeddedContentLinkDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/embeddedContentLink"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "resourceUri": {
+                "type": "string"
+              }
+            }
+          }
+        ]
       },
       "setEnabledRequest": {
         "type": "object",
@@ -17313,7 +17459,15 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "Default=false. If enabled by admins on the branding page, featured events will show on the home page carousel to viewers with permission. Featured events will not show in the featured carousel once the event has ended."
+            "description": "Default=false. If enabled by admins on the Branding page, Featured Events display on the Home page carousel to viewers with permission. Featured Events are not displayed once the event has ended."
+          },
+          "preRollVideoId": {
+            "type": "string",
+            "description": "Video Id of the Bumper video for the event."
+          },
+          "postRollVideoId": {
+            "type": "string",
+            "description": "Video Id of the Trailer video for the event."
           }
         }
       },
@@ -17882,7 +18036,7 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "If enabled by admins on the branding page, featured events will show on the home page carousel to viewers with permission. Featured events will not show in the featured carousel once the event has ended."
+            "description": "If enabled by admins on the Branding page, Featured Events display on the Home page carousel to viewers with permission. Featured Events are not displayed once the event has ended."
           }
         }
       },
@@ -19406,10 +19560,10 @@
           "logoUri": {
             "type": "string"
           },
-          "headerBackGroundColor": {
+          "headerKey": {
             "type": "string"
           },
-          "headerFontColor": {
+          "headerUri": {
             "type": "string"
           },
           "videoCount": {
@@ -19420,6 +19574,16 @@
           },
           "canAssign": {
             "type": "boolean"
+          },
+          "defaultSortOrder": {
+            "type": "string",
+            "enum": [
+              "whenUploaded",
+              "recommended",
+              "title",
+              "viewCount"
+            ],
+            "default": "whenUploaded"
           }
         }
       },
@@ -19837,11 +20001,21 @@
           "logoUri": {
             "type": "string"
           },
-          "headerBackGroundColor": {
+          "headerKey": {
             "type": "string"
           },
-          "headerFontColor": {
+          "headerUri": {
             "type": "string"
+          },
+          "defaultSortOrder": {
+            "type": "string",
+            "enum": [
+              "whenUploaded",
+              "recommended",
+              "title",
+              "viewCount"
+            ],
+            "default": "whenUploaded"
           }
         }
       },
@@ -20327,6 +20501,16 @@
             "items": {
               "$ref": "#/components/schemas/channelMember"
             }
+          },
+          "defaultSortOrder": {
+            "type": "string",
+            "enum": [
+              "whenUploaded",
+              "recommended",
+              "title",
+              "viewCount"
+            ],
+            "default": "whenUploaded"
           }
         }
       },
@@ -20484,6 +20668,19 @@
           "Static",
           "Dynamic"
         ]
+      },
+      "whenUploaded": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "videoSearchSortField": {
         "type": "string",
@@ -20901,7 +21098,7 @@
                 },
                 "Usage": {
                   "type": "string",
-                  "description": "Type of transaction that initiated the IQ credits. Possible values: Transcription, Translation, UserTagging, MetadataGeneration.",
+                  "description": "Type of transaction that initiated the IQ credits. Possible values include:",
                   "enum": [
                     "Transcription",
                     "Translation",
