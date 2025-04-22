@@ -2989,7 +2989,7 @@ function Get-RevUser
                 $request.Body.type = "email";
                 break;
             }
-            "Me" {
+            "CurrentUser" {
                 $request.Endpoint = "/api/v2/users/me";
             }
         }
