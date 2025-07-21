@@ -19147,6 +19147,9 @@
           },
           "canEdit": {
             "type": "boolean"
+          },
+          "hasTranscripts": {
+            "type": "boolean"
           }
         }
       },
@@ -19735,6 +19738,12 @@
           "name": {
             "type": "string",
             "description": "Name of the category to edit"
+          },
+          "parentCategoryId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Id of parent category to add the category as a child category. If empty will move category to top level. If specified, the Id needs to exist in Rev.",
+            "default": null
           },
           "restricted": {
             "type": "boolean",
