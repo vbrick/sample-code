@@ -5921,6 +5921,7 @@
         "summary": "Get Public Webcast Status",
         "description": "Returns true if the webcast is Public or an unauthorized HTTP Status Code if it is Private for security reasons.",
         "operationId": "verifyEventPublic",
+        "x-sdk-method-name": "verifyEventPublic",
         "parameters": [
           {
             "name": "eventId",
@@ -16423,6 +16424,13 @@
           "rtmp": {
             "$ref": "#/components/schemas/eventRtmpInfo"
           },
+          "secondaryRtmp": {
+            "$ref": "#/components/schemas/eventRtmpInfo"
+          },
+          "secondarySourceEnabled": {
+            "type": "boolean",
+            "description": "Default=false. If enabled, the event will have a secondary RTMP source for redundancy. This is only applicable when videoSourceType is Rtmp."
+          },
           "webcastType": {
             "$ref": "#/components/schemas/webcastType"
           },
@@ -17253,6 +17261,11 @@
             "description": "Default=true, Specifies if the RTMP based webcast should use RTMPS or RTMP. True will set to RTMPS and false will set to RTMP.",
             "default": true
           },
+          "secondarySourceEnabled": {
+            "type": "boolean",
+            "description": "Default=false, Specifies if the secondary RTMP source is enabled. This is only applicable when videoSourceType is Rtmp.",
+            "default": false
+          },
           "webcastType": {
             "$ref": "#/components/schemas/webcastType"
           },
@@ -18003,6 +18016,14 @@
           },
           "rtmp": {
             "$ref": "#/components/schemas/eventRtmpInfo"
+          },
+          "secondaryRtmp": {
+            "$ref": "#/components/schemas/eventRtmpInfo"
+          },
+          "secondarySourceEnabled": {
+            "type": "boolean",
+            "description": "Default=false, Specifies if the secondary RTMP source is enabled. This is only applicable when videoSourceType is Rtmp.",
+            "default": false
           },
           "webcastType": {
             "$ref": "#/components/schemas/webcastType"
