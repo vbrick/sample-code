@@ -143,7 +143,7 @@ function Get-RevCategories
         # If false, then return categories only at one level. If true or not provided, then return all the nested categories.
         [Parameter()]
         [bool]
-        $IncludeAllDescendants,
+        $IncludeAllDescendants = $true,
 
         # If enabled then return categories only at one level. This is switch version of the IncludeAllDescendants API parameter, and takes precedence if specified
         [Parameter()]
@@ -169,7 +169,7 @@ function Get-RevCategories
         $body.includeAllDescendants = $IncludeAllDescendants;
     }
 
-    Invoke-Rev -Method Get -Endpoint "/api/v2/categories" -Body $body -RequestArgs $RequestArgs -Client | Select-Object -expand "categories"
+    Invoke-Rev -Method Get -Endpoint "/api/v2/categories" -Body $body -RequestArgs $RequestArgs -Client $Client | Select-Object -expand "categories"
 }
 
 function Update-RevWebcastRegistrationField
@@ -2693,6 +2693,51 @@ function Edit-RevChannel
     Invoke-Rev -Method Patch -Endpoint "/api/v2/channels/$ChannelId" @params -Client $Client
 }
 
+
+function Set-RevChannelLogo
+{
+<#
+.SYNOPSIS
+    Upload Channel Logo Image
+.DESCRIPTION
+    Channels - Upload a logo image for a given channel.
+
+.LINK
+    https://revdocs.vbrick.com/reference/uploadchannellogofile
+#>
+    [CmdletBinding()]
+    param(
+        # Id of user to upload profile image
+        [Parameter(Mandatory, Position=0, ValueFromPipelineByPropertyName)]
+        [Alias("Id")]
+        [string]
+        $ChannelId,
+
+        # Image
+        [Parameter(Mandatory, Position=1, ValueFromPipeline)]
+        [Alias("Image")]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Path,
+
+        # Extra arguments to pass to Invoke-WebRequest
+        [Parameter()]
+        [hashtable]
+        $RequestArgs = @{},
+
+        # The Rev Client instance to use. If not defined use default one for this session
+        [Parameter()]
+        [RevClient]
+        $Client = (Get-RevClient)
+    )
+
+    $fileField = New-RevFormDataField -Name "ImageFile" -Value (Get-Item $Path);
+    $form = New-RevFormData -Fields @($fileField);
+
+    Invoke-Rev -Method Post -Endpoint "/api/v2/uploads/channel-logo/$ChannelId" -Body $form -RequestArgs $RequestArgs -Client $Client
+}
+
+
 function Get-RevChannelsForUser
 {
 <#
@@ -2764,6 +2809,12 @@ function New-RevChannel
         [RevMetadataAttribute()]
         [object[]]
         $Members,
+
+        # default sort order of channel results
+        [Parameter()]
+        [RevMetadataAttribute()]
+        [string]
+        $DefaultSortOrder,
 
         # Extra arguments to pass to Invoke-WebRequest
         [Parameter()]
@@ -3723,6 +3774,12 @@ function Set-RevUserProfileImage
         [string]
         $UserId,
 
+        # Image
+        [Parameter(Mandatory, Position=1, ValueFromPipeline)]
+        [Alias("Image")]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $Path,
 
         # Extra arguments to pass to Invoke-WebRequest
         [Parameter()]
@@ -3735,9 +3792,10 @@ function Set-RevUserProfileImage
         $Client = (Get-RevClient)
     )
 
+    $fileField = New-RevFormDataField -Name "ImageFile" -Value (Get-Item $Path);
+    $form = New-RevFormData -Fields @($fileField);
 
-
-    Invoke-Rev -Method Post -Endpoint "/api/v2/uploads/profile-image/$UserId" -RequestArgs $RequestArgs -Client $Client
+    Invoke-Rev -Method Post -Endpoint "/api/v2/uploads/profile-image/$UserId" -Body $form -RequestArgs $RequestArgs -Client $Client
 }
 
 function Update-RevGroup
@@ -5659,6 +5717,7 @@ function Add-RevVideoClosedCaption
     https://revdocs.vbrick.com/reference/uploadtranscriptionfiles
 #>
     [CmdletBinding()]
+    [Alias("Add-RevVideoTranscription")]
     param(
         # Id of video to set transcription files
         [Parameter(Mandatory, Position=0, ValueFromPipelineByPropertyName)]
@@ -5689,7 +5748,7 @@ function Add-RevVideoClosedCaption
         $Client = (Get-RevClient)
     )
 
-    $fileField = New-RevFormDataField -Name "File" -Value (Get-Item $Path) -ContentType 'application/x-subrip';
+    $fileField = New-RevFormDataField -Name "File" -Value (Get-Item $Path) -ContentType 'application/x-subrip' -FileName "$Language.srt";
 
     $jsonData = [array]@(@{
         fileName = $fileField.FileName;
@@ -5744,7 +5803,7 @@ function Add-RevVideoChapters
     $jsonData.chapters = $Chapters | foreach-object {
         $chapter = $_;
         $out = @{
-            time = $chapter.time;
+            time = if ($chapter.time) { $chapter.time } else { $chapter.startTime };
         }
         if ($chapter.title) {
             $out.title = $chapter.title;

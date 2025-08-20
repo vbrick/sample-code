@@ -228,7 +228,7 @@ class RevClient {
         return $this.Username -and $this.Password;
     }
     [bool] IsConnected() {
-        return $this.Token -and ($this.Expiration - [datetime]::UtcNow).TotalMinutes -ge 1;
+        return ($this.Expiration - [datetime]::UtcNow).TotalMinutes -ge 1;
     }
     static [bool] IsAuthEndpoint([string] $Endpoint) {
         return $Endpoint -match '(v\d/authenticate|v\d/tokens)|extend-session|user/(login|logoff|session)';
@@ -568,7 +568,7 @@ class RevClient {
             return $this.accountId;
         }
         $response = $this.Get('/');
-        if ($response -match '"account":\{"id":"(?<accountId>[a-f0-9-]{36})"') {
+        if ($response -match '"account"[\s\n]*:[\s\n]*\{[\s\n]*"id"[\s\n]*:[\s\n]*"(?<accountId>[a-f0-9-]{36})"') {
             $this.accountId = $Matches.accountId;
             return $this.accountId;
         } else {
@@ -580,7 +580,7 @@ class RevClient {
             return $this.version;
         }
         $response = $this.Get('/js/version.js');
-        if ($response -match 'buildNumber:\s*"(?<version>[\d.]+)') {
+        if ($response -match "buildNumber['`":\s\n]*(?<version>[\d.]+)") {
             $this.version = [Version]$Matches.version;
             return $this.version;
         } else {
@@ -784,6 +784,7 @@ function New-RevClient() {
 
         [Parameter(Position=1, ParameterSetName="AccessToken")] [string] $Token,
         [Parameter(Position=2, ParameterSetName="AccessToken")] [datetime] $Expiration,
+        [Parameter(ParameterSetName="AccessToken")] [switch] $PublicOnly,
 
         [Parameter(ParameterSetName="UserAuth")]
         [Parameter(ParameterSetName="ApiKeyAuth")]
@@ -834,6 +835,22 @@ function New-RevClient() {
             }
             break;
         }
+        'AccessToken' {
+            if ($PublicOnly) {
+                $local:revcfg.Expiration = (Get-Date).AddDays(365);
+                $local:revcfg.AutoConnect = $false;
+            } elseif  ($Token -and $Expiration) {
+                $local:revcfg.Token = $Token;
+                $local:revcfg.Expiration = [datetime]$Expiration;
+            } else {
+                throw [System.ArgumentException]::new("Invalid Token/Expiration Value")
+            }
+            $local:revcfg.Url = ($Url -as [uri]).AbsoluteURI;
+            if ($WebRequestArgs) {
+                $local:revcfg.WebRequestArgs = $WebRequestArgs;
+            }
+            break;
+        }
         'UserAuth' {
             $auth = @{
                 UserKey = "Username";
@@ -848,17 +865,6 @@ function New-RevClient() {
                 PassKey = "Secret";
                 UserVal = $ApiKey;
                 PassVal = $Secret;
-            }
-        }
-        'AccessToken' {
-            if (-not ($Token -and $Expiration)) {
-                throw [System.ArgumentException]::new("Invalid Token/Expiration Value")
-            }
-            $local:revcfg.Url = ($Url -as [uri]).AbsoluteURI;
-            $local:revcfg.Token = $Token;
-            $local:revcfg.Expiration = [datetime]$Expiration;
-            if ($WebRequestArgs) {
-                $local:revcfg.WebRequestArgs = $WebRequestArgs;
             }
         }
         { $_ } {
@@ -1740,6 +1746,14 @@ function Search-RevVideos
         [string]
         $ChannelId,
 
+        # If provided, videos will be filtered by access control.
+        [Parameter()]
+        [ValidateSet("Public", "AllUsers", "Private")]
+        [RevMetadataAttribute()]
+        [string]
+        $AccessControl,
+
+
         # Filter by videos that match a specific list of custom fields
         [Parameter()]
         [hashtable]
@@ -2092,11 +2106,11 @@ Upload a video to Rev
         
         try {
             if ($isReplace) {
-                $Client.Put("/api/uploads/videos/$VideoID", $Form);
+                $Client.Put("/api/v2/uploads/videos/$VideoID", $Form);
                 return $VideoID;
             }
 
-            $resp = $Client.Post("/api/uploads/videos", $Form);
+            $resp = $Client.Post("/api/v2/uploads/videos", $Form);
             return $resp.videoId;
         } finally {
             $Form.Dispose();
@@ -2842,7 +2856,7 @@ function New-RevUser
         $LastName,
 
         # Must be a vaild email format. Required.
-        [Parameter(Mandatory)]
+        [Parameter()]
         [RevMetadataAttribute()]
         [string]
         $Email,
@@ -2989,7 +3003,7 @@ function Get-RevUser
                 $request.Body.type = "email";
                 break;
             }
-            "Me" {
+            "CurrentUser" {
                 $request.Endpoint = "/api/v2/users/me";
             }
         }
