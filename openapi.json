@@ -2390,6 +2390,8 @@
                 "required": [
                   "LogoImageFile",
                   "BackgroundImageFile",
+                  "RegistrationBannerImageFile",
+                  "AvatarImageFiles",
                   "Branding"
                 ],
                 "properties": {
@@ -2403,26 +2405,78 @@
                     "description": "Background Image File. <p>Background image image file content type must match with list at location http://www.iana.org/assignments/media-types/media-types.xhtml#image.</p><p>Please provide Content-Type header for the uploaded image file.</p>",
                     "format": "binary"
                   },
+                  "RegistrationBannerImageFile": {
+                    "type": "string",
+                    "description": "Registration Banner Image File. <p>Registration banner image file content type must match with list at location http://www.iana.org/assignments/media-types/media-types.xhtml#image.</p><p>Please provide Content-Type header for the uploaded image file.</p>",
+                    "format": "binary"
+                  },
+                  "AvatarImageFiles": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "File": {
+                          "type": "string",
+                          "format": "binary",
+                          "description": "Avatar image file upload. <p>Avatar image file content type must match with list at location http://www.iana.org/assignments/media-types/media-types.xhtml#image.</p><p>Please provide Content-Type header for the uploaded image file.</p>"
+                        }
+                      }
+                    }
+                  },
                   "Branding": {
                     "title": "eventBrandingMetadata",
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/eventBrandingColors"
+                    "type": "object",
+                    "properties": {
+                      "headerColor": {
+                        "type": "string",
+                        "description": "Event Primary Color"
                       },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "logoImageFilename": {
-                            "type": "string",
-                            "description": "Logo Image Filename"
-                          },
-                          "backgroundImageFilename": {
-                            "type": "string",
-                            "description": "Background Image Filename"
+                      "headerFontColor": {
+                        "type": "string",
+                        "description": "Event Header Text Color"
+                      },
+                      "primaryFontColor": {
+                        "type": "string",
+                        "description": "Event Text Color"
+                      },
+                      "accentColor": {
+                        "type": "string",
+                        "description": "Event Accent Color"
+                      },
+                      "accentFontColor": {
+                        "type": "string",
+                        "description": "Event Accent Font Color"
+                      },
+                      "primaryColor": {
+                        "type": "string",
+                        "description": "Event Header Background Color"
+                      },
+                      "logoImageFilename": {
+                        "type": "string",
+                        "description": "Logo Image Filename"
+                      },
+                      "backgroundImageFilename": {
+                        "type": "string",
+                        "description": "Background Image Filename"
+                      },
+                      "registrationBannerImageFilename": {
+                        "type": "string",
+                        "description": "Registration Banner Image Filename"
+                      },
+                      "speakerProfiles": {
+                        "type": "array",
+                        "description": "Speaker profiles for the event.",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string" },
+                            "title": { "type": "string" },
+                            "description": { "type": "string" },
+                            "avatarImageFilename": { "type": "string" }
                           }
                         }
                       }
-                    ]
+                    }
                   }
                 }
               }
@@ -5661,7 +5715,7 @@
         },
         "x-codegen-request-body-name": "editPlaylistMembers"
       }
-    },    
+    },
     "/api/v2/scheduled-events": {
       "get": {
         "tags": [
@@ -14905,6 +14959,16 @@
               "SCIM"
             ]
           },
+          "sessionType": {
+            "type": "string",
+            "description": "Type of user session. Only returned when using the 'me' identifier (/api/v2/users/me), null otherwise.",
+            "enum": [
+              "Internal",
+              "Guest",
+              "RegisteredGuest"
+            ],
+            "nullable": true
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -17227,6 +17291,14 @@
               "$ref": "#/components/schemas/registrationFieldDetails"
             }
           },
+          "isCustomConsentEnabled": {
+            "type": "boolean",
+            "description": "Default=false. If accessControl is set to Public and 'EDIT PUBLIC REG. PAGE CONSENT VERBIAGE' is enabled on the account. When true, you can customize the consent verbiage for public attendees."
+          },
+          "consentVerbiage": {
+            "type": "string",
+            "description": "If isCustomConsentEnabled is true then you can customize the consent verbiage for public attendees."
+          },
           "customFields": {
             "type": "array",
             "items": {
@@ -17279,6 +17351,27 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/scaledImage"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "registrationBannerImageUrl": {
+                    "type": "string"
+                  },
+                  "speakerProfiles": {
+                    "type": "array",
+                    "description": "Speaker profiles for the event.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "title": { "type": "string" },
+                        "description": { "type": "string" },
+                        "avatarImageUrl": { "type": "string" }
+                      }
                     }
                   }
                 }
@@ -19299,7 +19392,7 @@
             }
           },
           "geoLocation": {
-            "$ref": "#/components/schemas/userSessionGeoLocationResponse"  
+            "$ref": "#/components/schemas/userSessionGeoLocationResponse"
           }
         }
       },
@@ -19582,7 +19675,7 @@
                   "type": "string"
                 },
                 "GeoLocation": {
-                  "$ref": "#/components/schemas/attendeeRealtimeGeoLocationResponse"  
+                  "$ref": "#/components/schemas/attendeeRealtimeGeoLocationResponse"
                 }
               }
             }
@@ -19628,7 +19721,7 @@
           },
           "PostalCode": {
             "type": "string"
-          }          
+          }
         }
       },
       "presentationProfileResponse": {
